@@ -1,44 +1,54 @@
 // ============================================================
-//  EDIT THIS FILE to update your portfolio.
-//  Add a new { ... } block to PROJECTS for each project.
-//  status: "complete" | "in-progress" | "planned"
+//  EDIT THIS FILE to update your portfolio. No HTML needed.
+//
+//  - Release an artifact: set status to "released", fill in
+//    title / summary / tags / repo, and set the week.
+//  - New class later: add another { ... } block to COURSES.
+//    The FIRST course in the list is featured at the top.
+//  - Personal / side projects: add them to PROJECTS.
 // ============================================================
 
 const PROFILE = {
   name: "Ibrahim Cartan",
   tagline: "Computer Science student at the University of Washington",
-  bio: "I build software and document what I learn along the way. This site collects my projects for the current quarter, including coursework from TCSS 490.",
   github: "https://github.com/IbrahimCart",
   email: "okrioaks@uw.edu",
   linkedin: "" // e.g. "https://www.linkedin.com/in/your-name"
 };
 
-const PROJECTS = [
+const COURSES = [
   {
-    title: "Portfolio Website",
-    course: "Personal",
-    status: "complete",
-    description: "This site: a responsive, dependency-free portfolio built with HTML, CSS and JavaScript and hosted on GitHub Pages.",
-    tags: ["HTML", "CSS", "JavaScript", "GitHub Pages"],
+    code: "TCSS 490",
+    title: "Special Topics in Computing",
+    term: "Autumn 2026",
+    description: "Projects, AI implementation experiments and weekly progress logs completed throughout the quarter.",
+    log: "https://github.com/IbrahimCart/IbrahimCart.github.io/blob/main/LOG.md", // prompt log
     repo: "https://github.com/IbrahimCart/IbrahimCart.github.io",
-    demo: ""
-  },
-  {
-    title: "Project 1 (placeholder)",
-    course: "TCSS 490",
-    status: "planned",
-    description: "Replace with a one- or two-sentence summary of what the project does and what you learned.",
-    tags: ["Tech", "Stack"],
-    repo: "",
-    demo: ""
-  },
-  {
-    title: "Project 2 (placeholder)",
-    course: "TCSS 490",
-    status: "planned",
-    description: "Replace with a one- or two-sentence summary of what the project does and what you learned.",
-    tags: ["Tech", "Stack"],
-    repo: "",
-    demo: ""
+    artifacts: [
+      {
+        title: "Portfolio Setup & AI Log",
+        status: "released", // "released" | "in-progress" | "upcoming"
+        week: 2,
+        summary: "Static portfolio deployed with GitHub Pages, with light/dark mode, a data-driven layout and a prompt log for course submissions.",
+        tags: ["HTML", "CSS", "JavaScript", "GitHub Pages"],
+        repo: "https://github.com/IbrahimCart/IbrahimCart.github.io",
+        demo: "https://ibrahimcart.github.io"
+      },
+      { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" },
+      { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" },
+      { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" },
+      { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" }
+    ]
   }
+  // Example for a future class:
+  // {
+  //   code: "TCSS 4xx", title: "Course name", term: "Winter 2027",
+  //   description: "...", log: "", repo: "",
+  //   artifacts: [ { title: "...", status: "released", week: 1, summary: "...", tags: [], repo: "", demo: "" } ]
+  // },
+];
+
+const PROJECTS = [
+  // Personal projects show up in an "Other Projects" section once you add one:
+  // { title: "My App", summary: "What it does.", tags: ["React"], repo: "", demo: "" }
 ];

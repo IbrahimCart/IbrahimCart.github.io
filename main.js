@@ -2,67 +2,91 @@
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const STATUS = { complete: "Complete", "in-progress": "In progress", planned: "Planned" };
+  const pad = (n) => String(n).padStart(2, "0");
+  const STATUS = { released: "Released", "in-progress": "In progress", upcoming: "Upcoming" };
+  const setLink = (el, url) => { if (url) el.href = url; else el.hidden = true; };
 
-  // Profile
-  $("name").textContent = PROFILE.name.split(" ")[0];
-  $("tagline").textContent = PROFILE.tagline;
-  $("bio").textContent = PROFILE.bio;
-  $("gh-btn").href = PROFILE.github;
+  const featured = COURSES[0] || {};
+
+  // Header + hero (featured = first course)
+  $("nav-name").textContent = PROFILE.name;
+  $("nav-course").textContent = featured.code || "";
+  setLink($("nav-log"), featured.log);
+  $("hero-badge").textContent = [featured.code, featured.term].filter(Boolean).join(" · ") || "Portfolio";
+  $("hero-title").textContent = featured.code ? `${featured.code}: ${featured.title}` : PROFILE.name;
+  $("hero-desc").textContent = featured.description || PROFILE.tagline;
+  $("hero-byline").textContent = `${PROFILE.name} · ${PROFILE.tagline}`;
+  setLink($("hero-log"), featured.log);
+  setLink($("hero-repo"), featured.repo || PROFILE.github);
   $("year").textContent = new Date().getFullYear();
 
-  const links = [
+  // Contact
+  $("links").innerHTML = [
     ["GitHub", PROFILE.github],
     ["Email", PROFILE.email && "mailto:" + PROFILE.email],
     ["LinkedIn", PROFILE.linkedin]
-  ].filter(([, url]) => url);
-  $("links").innerHTML = links
-    .map(([label, url]) => `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`)
-    .join("");
+  ].filter(([, u]) => u)
+    .map(([l, u]) => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("");
 
-  // Filters (built from the courses used in PROJECTS)
-  const courses = ["All", ...new Set(PROJECTS.map((p) => p.course).filter(Boolean))];
-  let active = "All";
+  const tags = (t) => (t && t.length)
+    ? `<div class="tags">${t.map((x) => `<span class="tag mono">${esc(x)}</span>`).join("")}</div>` : "";
 
-  function renderFilters() {
-    $("filters").innerHTML = courses
-      .map((c) => `<button class="${c === active ? "active" : ""}" data-c="${esc(c)}">${esc(c)}</button>`)
-      .join("");
-  }
-  $("filters").addEventListener("click", (e) => {
-    const b = e.target.closest("button");
-    if (!b) return;
-    active = b.dataset.c;
-    renderFilters();
-    renderGrid();
-  });
-
-  function card(p) {
-    const status = STATUS[p.status] ? p.status : "planned";
-    const linkHtml = [
-      p.repo && `<a href="${esc(p.repo)}" target="_blank" rel="noopener">Code →</a>`,
-      p.demo && `<a href="${esc(p.demo)}" target="_blank" rel="noopener">Live demo →</a>`
+  const links = (p) => {
+    const l = [
+      p.repo && `<a class="btn small primary" href="${esc(p.repo)}" target="_blank" rel="noopener">View repository</a>`,
+      p.demo && `<a class="btn small" href="${esc(p.demo)}" target="_blank" rel="noopener">Live demo</a>`
     ].filter(Boolean).join("");
+    return l ? `<div class="card-links">${l}</div>` : "";
+  };
+
+  function artifactCard(a, i) {
+    const status = STATUS[a.status] ? a.status : "upcoming";
+    const upcoming = status === "upcoming";
     return `
-      <article class="card">
+      <article class="card ${upcoming ? "pending" : ""}">
         <div class="card-top">
-          <span class="course">${esc(p.course)}</span>
+          <span class="label mono">Artifact ${pad(i + 1)}</span>
           <span class="status ${status}">${STATUS[status]}</span>
         </div>
-        <h3>${esc(p.title)}</h3>
-        <p>${esc(p.description)}</p>
-        <div class="tags">${(p.tags || []).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
-        ${linkHtml ? `<div class="card-links">${linkHtml}</div>` : ""}
+        <h3>${esc(a.title || "Future artifact")}</h3>
+        <p>${esc(a.summary || "Project overview and deliverables will be posted when this artifact is released.")}</p>
+        ${tags(a.tags)}
+        ${upcoming ? "" : links(a)}
+        <div class="card-foot mono"><span>Week ${a.week ?? "--"}</span></div>
       </article>`;
   }
 
-  function renderGrid() {
-    const list = PROJECTS.filter((p) => active === "All" || p.course === active);
-    $("grid").innerHTML = list.length ? list.map(card).join("") : `<p class="empty">No projects yet.</p>`;
-  }
+  // Course sections
+  $("courses").innerHTML = COURSES.map((c) => {
+    const arts = c.artifacts || [];
+    const done = arts.filter((a) => a.status === "released").length;
+    return `
+      <section class="course-block" id="${esc((c.code || "").replace(/\s+/g, "-").toLowerCase())}">
+        <div class="section-head">
+          <div>
+            <h2>${esc(c.code)} Artifacts</h2>
+            <p class="sub">${esc(c.title)}${c.term ? " · " + esc(c.term) : ""}</p>
+          </div>
+          <span class="counter mono">${done} / ${arts.length} released</span>
+        </div>
+        <div class="grid">${arts.map(artifactCard).join("")}</div>
+      </section>`;
+  }).join("");
 
-  renderFilters();
-  renderGrid();
+  // Other projects (only shown when there are some)
+  if (PROJECTS.length) {
+    $("other").innerHTML = `
+      <section>
+        <div class="section-head"><div><h2>Other Projects</h2><p class="sub">Personal and side projects.</p></div></div>
+        <div class="grid">${PROJECTS.map((p) => `
+          <article class="card">
+            <h3>${esc(p.title)}</h3>
+            <p>${esc(p.summary)}</p>
+            ${tags(p.tags)}
+            ${links(p)}
+          </article>`).join("")}</div>
+      </section>`;
+  }
 
   // Theme toggle (remembered per browser)
   const root = document.documentElement;

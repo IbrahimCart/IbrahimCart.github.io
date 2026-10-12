@@ -4,21 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ibrahim Cartan · Portfolio</title>
-  <meta name="description" content="Projects by Ibrahim Cartan, Computer Science student at the University of Washington.">
+  <meta name="description" content="Course portfolio and projects by Ibrahim Cartan, University of Washington.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23315efb'/><text x='16' y='22' font-family='Arial' font-size='16' font-weight='700' fill='white' text-anchor='middle'>IC</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="nav">
     <div class="wrap nav-inner">
-      <a href="#top" class="logo">IC</a>
+      <a href="#top" class="logo"><span class="logo-mark">IC</span><span class="logo-text"><b id="nav-name"></b><small id="nav-course" class="mono"></small></span></a>
       <nav>
-        <a href="#projects">Projects</a>
-        <a href="#about">About</a>
+        <a href="#courses">Courses</a>
         <a href="#contact">Contact</a>
+        <a class="pill-link" id="nav-log" target="_blank" rel="noopener">LOG.md</a>
         <button id="theme" class="theme-btn" aria-label="Toggle dark mode"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
       </nav>
     </div>
@@ -26,31 +26,22 @@
 
   <main id="top" class="wrap">
     <section class="hero">
-      <p class="eyebrow" id="tagline"></p>
-      <h1>Hi, I'm <span id="name"></span>.</h1>
-      <p class="lede" id="bio"></p>
+      <p class="badge"><span class="dot"></span><span id="hero-badge"></span></p>
+      <h1 id="hero-title"></h1>
+      <p class="lede" id="hero-desc"></p>
+      <p class="byline" id="hero-byline"></p>
       <div class="cta">
-        <a class="btn primary" href="#projects">View projects</a>
-        <a class="btn" id="gh-btn" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn primary" id="hero-log" target="_blank" rel="noopener">View Prompt Log (LOG.md)</a>
+        <a class="btn" id="hero-repo" target="_blank" rel="noopener">GitHub Repository</a>
       </div>
     </section>
 
-    <section id="projects">
-      <div class="section-head">
-        <h2>Projects</h2>
-        <div class="filters" id="filters" role="tablist"></div>
-      </div>
-      <div class="grid" id="grid"></div>
-    </section>
-
-    <section id="about" class="about">
-      <h2>About</h2>
-      <p>I'm a Computer Science student at the University of Washington. This quarter I'm working on projects for TCSS 490 alongside my own work. Each card above links to its source code or a live demo when one exists.</p>
-    </section>
+    <div id="courses"></div>
+    <div id="other"></div>
 
     <section id="contact" class="contact">
       <h2>Contact</h2>
-      <p>Want to talk about a project? Reach me through any of these.</p>
+      <p>Questions about a project? Reach me here.</p>
       <div class="links" id="links"></div>
     </section>
   </main>
