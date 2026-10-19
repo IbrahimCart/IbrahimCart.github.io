@@ -39,6 +39,19 @@
     return l ? `<div class="card-links">${l}</div>` : "";
   };
 
+  const slideshow = (imgs, id) => (imgs && imgs.length) ? `
+    <div class="slideshow" data-ss="${id}" role="group" aria-roledescription="carousel" aria-label="Screenshots">
+      <div class="ss-track">${imgs.map((im, n) => `
+        <figure class="ss-slide" ${n ? "hidden" : ""}>
+          <img src="${esc(im.src)}" alt="${esc(im.alt || "")}" loading="${n ? "lazy" : "eager"}">
+          ${im.caption ? `<figcaption>${esc(im.caption)}</figcaption>` : ""}
+        </figure>`).join("")}</div>
+      ${imgs.length > 1 ? `
+      <button class="ss-btn prev" type="button" aria-label="Previous image">&#8249;</button>
+      <button class="ss-btn next" type="button" aria-label="Next image">&#8250;</button>
+      <div class="ss-dots">${imgs.map((_, n) => `<button type="button" class="ss-dot" aria-label="Show image ${n + 1}" aria-current="${n ? "false" : "true"}"></button>`).join("")}</div>` : ""}
+    </div>` : "";
+
   function artifactCard(a, i) {
     const status = STATUS[a.status] ? a.status : "upcoming";
     const upcoming = status === "upcoming";
@@ -48,6 +61,7 @@
           <span class="label mono">Artifact ${pad(i + 1)}</span>
           <span class="status ${status}">${STATUS[status]}</span>
         </div>
+        ${upcoming ? "" : slideshow(a.images, i)}
         <h3>${esc(a.title || "Future artifact")}</h3>
         <p>${esc(a.summary || "Project overview and deliverables will be posted when this artifact is released.")}</p>
         ${tags(a.tags)}
@@ -87,6 +101,44 @@
           </article>`).join("")}</div>
       </section>`;
   }
+
+  // Enlarged image view (native <dialog>: Esc and the close button dismiss it)
+  const box = document.createElement("dialog");
+  box.className = "lightbox";
+  box.innerHTML = '<button type="button" class="lb-close" aria-label="Close">&times;</button><img alt=""><p></p>';
+  document.body.appendChild(box);
+  const openLightbox = (src, alt, cap) => {
+    box.querySelector("img").src = src;
+    box.querySelector("img").alt = alt || "";
+    box.querySelector("p").textContent = cap || "";
+    box.showModal();
+  };
+  box.addEventListener("click", (e) => { if (e.target === box || e.target.classList.contains("lb-close")) box.close(); });
+
+  // Slideshows (no autoplay; arrows, dots and left/right keys)
+  document.querySelectorAll(".slideshow").forEach((ss) => {
+    const slides = [...ss.querySelectorAll(".ss-slide")];
+    const dots = [...ss.querySelectorAll(".ss-dot")];
+    let cur = 0;
+    const show = (n) => {
+      cur = (n + slides.length) % slides.length;
+      slides.forEach((s, k) => { s.hidden = k !== cur; });
+      dots.forEach((d, k) => d.setAttribute("aria-current", k === cur ? "true" : "false"));
+    };
+    ss.querySelector(".prev")?.addEventListener("click", () => show(cur - 1));
+    ss.querySelector(".next")?.addEventListener("click", () => show(cur + 1));
+    dots.forEach((d, k) => d.addEventListener("click", () => show(k)));
+    slides.forEach((s) => {
+      const img = s.querySelector("img");
+      img.title = "Click to enlarge";
+      img.addEventListener("click", () => openLightbox(img.src, img.alt, s.querySelector("figcaption")?.textContent));
+    });
+    ss.tabIndex = 0;
+    ss.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") show(cur - 1);
+      if (e.key === "ArrowRight") show(cur + 1);
+    });
+  });
 
   // Theme toggle (remembered per browser)
   const root = document.documentElement;

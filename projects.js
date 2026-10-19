@@ -41,7 +41,15 @@ const COURSES = [
         summary: "A Discord bot that plays music in voice channels. It searches YouTube with a SoundCloud fallback, accepts YouTube, SoundCloud and Spotify links, and supports slash commands for play, skip, pause, resume, queue and stop. Prefetches the next track for faster starts and works on macOS and Windows.",
         tags: ["Python", "discord.py", "yt-dlp", "Spotify API", "FFmpeg"],
         repo: "https://github.com/IbrahimCart/discord-music-bot",
-        demo: ""
+        demo: "",
+        // Slideshow shown at the top of the card. Replace these with real screenshots later:
+        // put the PNG/JPG in images/ and change src (keep or edit the alt text and caption).
+        images: [
+          { src: "images/play-song.svg", alt: "Mockup of the /play command answered with a Now playing message", caption: "Illustration: /play with a song name starts playback" },
+          { src: "images/spotify.svg", alt: "Mockup of a Spotify playlist link being queued", caption: "Illustration: paste a Spotify playlist and it queues every track" },
+          { src: "images/queue.svg", alt: "Mockup of the /queue command listing upcoming songs", caption: "Illustration: /queue shows what's playing and what's next" },
+          { src: "images/controls.svg", alt: "Mockup of the /skip and /pause commands", caption: "Illustration: /skip, /pause, /resume and /stop control playback" }
+        ]
       },
       { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" },
       { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" },
