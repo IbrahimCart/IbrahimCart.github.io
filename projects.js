@@ -40,7 +40,7 @@ const COURSES = [
         week: 3,
         summary: "A Discord bot that plays music in voice channels. It searches YouTube with a SoundCloud fallback, accepts YouTube, SoundCloud and Spotify links, and supports slash commands for play, skip, pause, resume, queue and stop. Prefetches the next track for faster starts and works on macOS and Windows.",
         tags: ["Python", "discord.py", "yt-dlp", "Spotify API", "FFmpeg"],
-        repo: "", // repo is private; add https://github.com/IbrahimCart/discord-music-bot once it is public
+        repo: "https://github.com/IbrahimCart/discord-music-bot",
         demo: ""
       },
       { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" },

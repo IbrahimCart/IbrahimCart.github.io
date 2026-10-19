@@ -25,4 +25,4 @@ A running log of the AI prompts I used this quarter, what I asked for and what I
 - **Tool / model:** Claude Code (Claude Opus 5.5 / Sonnet 5.5)
 - **Prompt:** "Add this Discord bot to my portfolio website as Artifact 2."
 - **What it produced:** A new released artifact entry in `projects.js` describing the bot (Python, discord.py, yt-dlp, Spotify support) and this log entry.
-- **What I changed and why:** Left the repository link empty because the repo is private, so visitors don't hit a dead link.
+- **What I changed and why:** Made the bot's repository public and linked it from the card.
