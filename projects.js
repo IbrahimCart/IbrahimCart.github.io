@@ -32,7 +32,7 @@ const COURSES = [
         summary: "Static portfolio deployed with GitHub Pages, with light/dark mode, a data-driven layout and a prompt log for course submissions.",
         tags: ["HTML", "CSS", "JavaScript", "GitHub Pages"],
         repo: "https://github.com/IbrahimCart/IbrahimCart.github.io",
-        demo: "https://ibrahimcart.github.io"
+        demo: ""
       },
       {
         title: "Discord Music Bot",
