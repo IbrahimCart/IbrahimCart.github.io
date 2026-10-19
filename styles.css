@@ -165,3 +165,6 @@ h2 { font-size: 26px; letter-spacing: -.01em; margin: 0 0 20px; }
 .lb-nav[hidden] { display: none; }
 .lb-prev { left: 8px; } .lb-next { right: 8px; }
 .lb-close { position: absolute; top: -14px; right: -6px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: #fff; color: #000; font-size: 22px; line-height: 1; cursor: pointer; }
+.ss-btn:disabled, .lb-nav:disabled { opacity: .3; cursor: default; }
+.ss-btn:disabled:hover { background: rgba(0,0,0,.55); }
+.lb-nav:disabled:hover { background: rgba(0,0,0,.6); }

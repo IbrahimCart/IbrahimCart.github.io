@@ -114,7 +114,7 @@
   document.body.appendChild(box);
   let lb = { items: [], i: 0, onChange: null };
   const lbShow = (n) => {
-    lb.i = (n + lb.items.length) % lb.items.length;
+    lb.i = Math.max(0, Math.min(n, lb.items.length - 1));
     const it = lb.items[lb.i];
     const img = box.querySelector("img");
     img.src = it.src; img.alt = it.alt || "";
@@ -122,6 +122,8 @@
     const many = lb.items.length > 1;
     box.querySelector(".lb-count").textContent = many ? `${lb.i + 1} / ${lb.items.length}` : "";
     box.querySelectorAll(".lb-nav").forEach((b) => { b.hidden = !many; });
+    box.querySelector(".lb-prev").disabled = lb.i === 0;
+    box.querySelector(".lb-next").disabled = lb.i === lb.items.length - 1;
     if (lb.onChange) lb.onChange(lb.i);
   };
   const openLightbox = (items, i, onChange) => {
@@ -145,8 +147,11 @@
     const dots = [...ss.querySelectorAll(".ss-dot")];
     let cur = 0;
     const show = (n) => {
-      cur = (n + slides.length) % slides.length;
+      cur = Math.max(0, Math.min(n, slides.length - 1));
       slides.forEach((s, k) => { s.hidden = k !== cur; });
+      const pv = ss.querySelector(".prev"), nx = ss.querySelector(".next");
+      if (pv) pv.disabled = cur === 0;
+      if (nx) nx.disabled = cur === slides.length - 1;
       dots.forEach((d, k) => d.setAttribute("aria-current", k === cur ? "true" : "false"));
     };
     ss.querySelector(".prev")?.addEventListener("click", () => show(cur - 1));
@@ -162,6 +167,7 @@
       img.title = "Click to enlarge";
       img.addEventListener("click", () => openLightbox(items, k, show));
     });
+    show(0);
     ss.tabIndex = 0;
     ss.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft") show(cur - 1);
