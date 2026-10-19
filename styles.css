@@ -158,4 +158,10 @@ h2 { font-size: 26px; letter-spacing: -.01em; margin: 0 0 20px; }
 .lightbox::backdrop { background: rgba(0,0,0,.75); }
 .lightbox img { display: block; width: 100%; height: auto; border-radius: 10px; }
 .lightbox p { margin: 10px 4px 0; font-size: 14px; text-align: center; color: #e8eaed; }
+.lightbox .lb-count { margin-top: 4px; font-size: 12px; color: #b5bac1; }
+.lb-nav { position: absolute; top: 45%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(0,0,0,.6); color: #fff; font-size: 28px; line-height: 1; display: grid; place-items: center; }
+.lb-nav:hover { background: rgba(0,0,0,.85); }
+.lb-nav[hidden] { display: none; }
+.lb-prev { left: 8px; } .lb-next { right: 8px; }
 .lb-close { position: absolute; top: -14px; right: -6px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: #fff; color: #000; font-size: 22px; line-height: 1; cursor: pointer; }

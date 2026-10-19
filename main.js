@@ -102,18 +102,42 @@
       </section>`;
   }
 
-  // Enlarged image view (native <dialog>: Esc and the close button dismiss it)
+  // Enlarged image view (native <dialog>: Esc and the close button dismiss it).
+  // Arrows / left-right keys step through the same list without closing it.
   const box = document.createElement("dialog");
   box.className = "lightbox";
-  box.innerHTML = '<button type="button" class="lb-close" aria-label="Close">&times;</button><img alt=""><p></p>';
+  box.setAttribute("aria-label", "Enlarged image");
+  box.innerHTML = '<button type="button" class="lb-close" aria-label="Close">&times;</button>' +
+    '<button type="button" class="lb-nav lb-prev" aria-label="Previous image">&#8249;</button>' +
+    '<img alt=""><button type="button" class="lb-nav lb-next" aria-label="Next image">&#8250;</button>' +
+    '<p class="lb-cap"></p><p class="lb-count"></p>';
   document.body.appendChild(box);
-  const openLightbox = (src, alt, cap) => {
-    box.querySelector("img").src = src;
-    box.querySelector("img").alt = alt || "";
-    box.querySelector("p").textContent = cap || "";
-    box.showModal();
+  let lb = { items: [], i: 0, onChange: null };
+  const lbShow = (n) => {
+    lb.i = (n + lb.items.length) % lb.items.length;
+    const it = lb.items[lb.i];
+    const img = box.querySelector("img");
+    img.src = it.src; img.alt = it.alt || "";
+    box.querySelector(".lb-cap").textContent = it.caption || "";
+    const many = lb.items.length > 1;
+    box.querySelector(".lb-count").textContent = many ? `${lb.i + 1} / ${lb.items.length}` : "";
+    box.querySelectorAll(".lb-nav").forEach((b) => { b.hidden = !many; });
+    if (lb.onChange) lb.onChange(lb.i);
   };
-  box.addEventListener("click", (e) => { if (e.target === box || e.target.classList.contains("lb-close")) box.close(); });
+  const openLightbox = (items, i, onChange) => {
+    lb = { items, i, onChange };
+    lbShow(i);
+    if (!box.open) box.showModal();
+  };
+  box.addEventListener("click", (e) => {
+    if (e.target === box || e.target.classList.contains("lb-close")) box.close();
+    else if (e.target.classList.contains("lb-prev")) lbShow(lb.i - 1);
+    else if (e.target.classList.contains("lb-next")) lbShow(lb.i + 1);
+  });
+  box.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") { e.preventDefault(); lbShow(lb.i - 1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); lbShow(lb.i + 1); }
+  });
 
   // Slideshows (no autoplay; arrows, dots and left/right keys)
   document.querySelectorAll(".slideshow").forEach((ss) => {
@@ -128,10 +152,15 @@
     ss.querySelector(".prev")?.addEventListener("click", () => show(cur - 1));
     ss.querySelector(".next")?.addEventListener("click", () => show(cur + 1));
     dots.forEach((d, k) => d.addEventListener("click", () => show(k)));
-    slides.forEach((s) => {
+    const items = slides.map((s) => ({
+      src: s.querySelector("img").getAttribute("src"),
+      alt: s.querySelector("img").alt,
+      caption: s.querySelector("figcaption")?.textContent
+    }));
+    slides.forEach((s, k) => {
       const img = s.querySelector("img");
       img.title = "Click to enlarge";
-      img.addEventListener("click", () => openLightbox(img.src, img.alt, s.querySelector("figcaption")?.textContent));
+      img.addEventListener("click", () => openLightbox(items, k, show));
     });
     ss.tabIndex = 0;
     ss.addEventListener("keydown", (e) => {
