@@ -1,8 +1,8 @@
 // ============================================================
 //  EDIT THIS FILE to update your portfolio. No HTML needed.
 //
-//  - Release an artifact: set status to "released", fill in
-//    title / summary / tags / repo, and set the week.
+//  - Release an artifact: set status to "released" and update
+//    title / summary / tags / repo / demo.
 //  - New class later: add another { ... } block to COURSES.
 //    The FIRST course in the list is featured at the top.
 //  - Personal / side projects: add them to PROJECTS.
@@ -27,40 +27,53 @@ const COURSES = [
     artifacts: [
       {
         title: "Portfolio Setup & AI Log",
-        status: "released", // "released" | "in-progress" | "upcoming"
-        week: 2,
+        status: "released", // "released" | "in-progress" | "upcoming" (shows "Coming soon")
+        due: "Sun Oct 11",
+        team: "Solo · 1 week",
         summary: "Static portfolio deployed with GitHub Pages, with light/dark mode, a data-driven layout and a prompt log for course submissions.",
         tags: ["HTML", "CSS", "JavaScript", "GitHub Pages"],
         repo: "https://github.com/IbrahimCart/IbrahimCart.github.io",
-        demo: ""
+        demo: "https://ibrahimcart.github.io"
       },
       {
-        title: "Discord Music Bot",
-        status: "released",
-        week: 3,
-        summary: "A Discord bot that plays music in voice channels. It searches YouTube with a SoundCloud fallback, accepts YouTube, SoundCloud and Spotify links, and supports slash commands for play, skip, pause, resume, queue and stop. Prefetches the next track for faster starts and works on macOS and Windows.",
-        tags: ["Python", "discord.py", "yt-dlp", "Spotify API", "FFmpeg"],
-        repo: "https://github.com/IbrahimCart/discord-music-bot",
-        demo: "",
-        // Slideshow shown at the top of the card. Replace these with real screenshots later:
-        // put the PNG/JPG in images/ and change src (keep or edit the alt text and caption).
-        images: [
-          { src: "images/play-song.svg", alt: "Mockup of the /play command answered with a Now playing message", caption: "Illustration: /play with a song name starts playback" },
-          { src: "images/spotify.svg", alt: "Mockup of a Spotify playlist link being queued", caption: "Illustration: paste a Spotify playlist and it queues every track" },
-          { src: "images/queue.svg", alt: "Mockup of the /queue command listing upcoming songs", caption: "Illustration: /queue shows what's playing and what's next" },
-          { src: "images/controls.svg", alt: "Mockup of the /skip and /pause commands", caption: "Illustration: /skip, /pause, /resume and /stop control playback" }
-        ]
+        title: "Something You Will Use",
+        status: "upcoming",
+        due: "Sun Oct 18",
+        team: "Solo · 1 week",
+        summary: "A small tool that runs, does one real thing, and that I'll keep using after the week ends. My first build with Claude Code.",
+        tags: [], repo: "", demo: ""
       },
-      { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" },
-      { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" },
-      { title: "", status: "upcoming", week: null, summary: "", tags: [], repo: "", demo: "" }
+      {
+        title: "AI Inside It",
+        status: "upcoming",
+        due: "Sun Oct 25",
+        team: "Solo · 1 week",
+        summary: "A build where an AI model does part of the work every time it runs: reading, deciding, writing or calling tools.",
+        tags: [], repo: "", demo: ""
+      },
+      {
+        title: "For Someone Else",
+        status: "upcoming",
+        due: "Sun Nov 8",
+        team: "Pair or trio · 2 weeks",
+        summary: "Built with teammates for a real person or group outside the team, finding out what they need and building to it.",
+        tags: [], repo: "", demo: ""
+      },
+      {
+        title: "The Moonshot",
+        status: "upcoming",
+        due: "Sun Dec 13",
+        team: "Solo or team · 5 weeks",
+        summary: "My biggest project yet: an ambitious build, ideally deployed where real users can reach it.",
+        tags: [], repo: "", demo: ""
+      }
     ]
   }
   // Example for a future class:
   // {
   //   code: "TCSS 4xx", title: "Course name", term: "Winter 2027",
   //   description: "...", log: "", repo: "",
-  //   artifacts: [ { title: "...", status: "released", week: 1, summary: "...", tags: [], repo: "", demo: "" } ]
+  //   artifacts: [ { title: "...", status: "released", due: "", team: "", summary: "...", tags: [], repo: "", demo: "" } ]
   // },
 ];
 
