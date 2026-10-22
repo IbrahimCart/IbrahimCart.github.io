@@ -53,10 +53,12 @@ const COURSES = [
       },
       {
         title: "AI Inside It",
-        status: "upcoming",
-        week: null,
-        summary: "Course plan: a one-week solo build where an AI model does part of the work every time it runs, such as reading, deciding, writing or calling tools. Due Sun Oct 25.",
-        tags: [], repo: "", demo: ""
+        status: "released",
+        week: 4,
+        summary: "AI GitHub Code Reviewer: a command-line tool that reviews a pull request or git diff with Claude Code running headless. Claude reads the change and reports bugs, security problems and missing tests, and can post them as inline comments on the PR. My own code fetches and filters the diff, then checks every finding against it and drops any that cite a file or line that was never shown. Reflection: keeping the model's job small, one call with no tools, made it easy to tell whether a bad review was the model's fault or my code's. Structured output was not enough on its own, because the model can return valid JSON that points at a line that does not exist, so the checks mattered as much as the prompt.",
+        tags: ["Python", "Claude Code", "claude -p", "GitHub CLI", "Git"],
+        repo: "https://github.com/IbrahimCart/ai-code-reviewer",
+        demo: ""
       },
       {
         title: "For Someone Else",
