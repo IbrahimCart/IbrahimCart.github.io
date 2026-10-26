@@ -58,7 +58,13 @@ const COURSES = [
         summary: "AI GitHub Code Reviewer: a command-line tool that reviews a pull request or git diff with Claude Code running headless. Claude reads the change and reports bugs, security problems and missing tests, and can post them as inline comments on the PR. My own code fetches and filters the diff, then checks every finding against it and drops any that cite a file or line that was never shown. Reflection: keeping the model's job small, one call with no tools, made it easy to tell whether a bad review was the model's fault or my code's. Structured output was not enough on its own, because the model can return valid JSON that points at a line that does not exist, so the checks mattered as much as the prompt.",
         tags: ["Python", "Claude Code", "claude -p", "GitHub CLI", "Git"],
         repo: "https://github.com/IbrahimCart/ai-code-reviewer",
-        demo: ""
+        demo: "",
+        images: [
+          { src: "images/review-terminal.svg", alt: "Mockup of a terminal running ai-review on a pull request and listing findings by severity", caption: "Illustration: one command reviews a PR and lists what it found" },
+          { src: "images/review-pr-comment.svg", alt: "Mockup of an inline review comment on a SQL injection in a GitHub pull request", caption: "Illustration: findings are posted as inline comments on the exact line" },
+          { src: "images/review-checks.svg", alt: "Mockup of the review checks list showing dropped, moved and kept model findings", caption: "Illustration: my code drops or fixes anything the model got wrong" },
+          { src: "images/review-architecture.svg", alt: "Diagram showing which steps the model handles and which are plain code", caption: "Illustration: the model reviews, my code does everything else" }
+        ]
       },
       {
         title: "For Someone Else",
