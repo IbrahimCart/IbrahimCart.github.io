@@ -38,7 +38,7 @@ const COURSES = [
         title: "Discord Music Bot",
         status: "released",
         week: 3,
-        summary: "A Discord bot that plays music in voice channels. It searches YouTube with a SoundCloud fallback, accepts YouTube, SoundCloud and Spotify links, and supports slash commands for play, skip, pause, resume, queue and stop. Prefetches the next track for faster starts and works on macOS and Windows.",
+        summary: "A Discord bot that plays music in voice channels. It searches YouTube with a SoundCloud fallback, accepts YouTube, SoundCloud and Spotify links, and supports slash commands for play, skip, pause, resume, queue and stop. Prefetches the next track for faster starts and works on macOS and Windows. Reflection: the hardest part was that Spotify audio cannot be streamed, so the bot has to find the same song on YouTube, and early versions often played the wrong version. Fixing that taught me to make the bot prefer saying it could not find a song over playing the wrong one, and to match tracks by length. I also learned to test the AI-written changes in Discord myself before pushing them, and to keep a log in the repository of what I asked for and what changed.",
         tags: ["Python", "discord.py", "yt-dlp", "Spotify API", "FFmpeg"],
         repo: "https://github.com/IbrahimCart/discord-music-bot",
         demo: "",
@@ -61,17 +61,17 @@ const COURSES = [
         demo: "",
         images: [
           { src: "images/review-terminal.svg", alt: "Mockup of a terminal running ai-review on a pull request and listing findings by severity", caption: "Illustration: one command reviews a PR and lists what it found" },
-          { src: "images/review-pr-comment.svg", alt: "Mockup of an inline review comment on a SQL injection in a GitHub pull request", caption: "Illustration: findings are posted as inline comments on the exact line" },
+          { src: "images/review-real-pr.jpg", alt: "Real screenshot of two review comments posted by the tool on a GitHub pull request: a critical SQL injection finding and a medium finding about a connection that is never closed", caption: "Real screenshot: the tool's review posted on a practice pull request, including a critical SQL injection finding" },
           { src: "images/review-checks.svg", alt: "Mockup of the review checks list showing dropped, moved and kept model findings", caption: "Illustration: my code drops or fixes anything the model got wrong" },
           { src: "images/review-architecture.svg", alt: "Diagram showing which steps the model handles and which are plain code", caption: "Illustration: the model reviews, my code does everything else" }
         ]
       },
       {
         title: "For Someone Else",
-        status: "upcoming",
-        week: null,
-        summary: "Course plan: a two-week build with a partner or trio for a real person or group outside the team, finding out what they need and building to it. Due Sun Nov 8.",
-        tags: [], repo: "", demo: ""
+        status: "in-progress",
+        week: 5,
+        summary: "Check-in, Nov 1: I am choosing a project to build for someone outside my team. I am looking at contributing a fix or small feature to an open-source Discord bot, asking its maintainers what they need first and then handing it over as a pull request. I asked my professor if I can do this first submission on my own and find a partner for the next one. Next steps: pick the project, ask the maintainers, write the plan and CLAUDE.md in a repo, then build. Due Sun Nov 8.",
+        tags: ["Python", "Discord", "Open Source"], repo: "", demo: ""
       },
       {
         title: "The Moonshot",
