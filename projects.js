@@ -70,8 +70,10 @@ const COURSES = [
         title: "For Someone Else",
         status: "in-progress",
         week: 5,
-        summary: "Check-in, Nov 1: I am choosing a project to build for someone outside my team. I am looking at contributing a fix or small feature to an open-source Discord bot, asking its maintainers what they need first and then handing it over as a pull request. I asked my professor if I can do this first submission on my own and find a partner for the next one. Next steps: pick the project, ask the maintainers, write the plan and CLAUDE.md in a repo, then build. Due Sun Nov 8.",
-        tags: ["Python", "Discord", "Open Source"], repo: "", demo: ""
+        summary: "Check-in, Nov 1: I chose a project for someone outside my team: a pull request to the open-source PESU Discord bot (pesu-dev/discord_bot) that adds a /mod cleanup command, requested in their issue #92. It resets a busy help channel and reposts the pinned instructions for their moderators. I read their contributing guide and commented on the issue to ask the maintainers what they need; no reply yet. I asked my professor if I can do this first submission on my own and find a partner for the next one. The plan, team CLAUDE.md and log are in the repository. Next: set up the bot on a test server, build the command and open the PR. Due Sun Nov 8.",
+        tags: ["Python", "discord.py", "Open Source"],
+        repo: "https://github.com/IbrahimCart/artifact-4-discord-bot-pr",
+        demo: ""
       },
       {
         title: "The Moonshot",
