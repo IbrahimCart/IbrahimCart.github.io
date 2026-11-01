@@ -70,7 +70,7 @@ const COURSES = [
         title: "For Someone Else",
         status: "in-progress",
         week: 5,
-        summary: "Check-in, Nov 1: I chose a project for someone outside my team: a pull request to the open-source PESU Discord bot (pesu-dev/discord_bot) that adds a /mod cleanup command, requested in their issue #92. It resets a busy help channel and reposts the pinned instructions for their moderators. I read their contributing guide and commented on the issue to ask the maintainers what they need; no reply yet. I asked my professor if I can do this first submission on my own and find a partner for the next one. The plan, team CLAUDE.md and log are in the repository. Next: set up the bot on a test server, build the command and open the PR. Due Sun Nov 8.",
+        summary: "Update, Nov 1: I built the /mod cleanup command that the open-source PESU Discord bot (pesu-dev/discord_bot) asked for in their issue #92, and handed it over as pull request #103 against their dev branch. The command resets their busy #access-help channel for moderators: it purges the channel, reposts and pins the two standard onboarding messages and logs the cleanup. It has unit tests and passes the project's lint and coverage checks, but I have not run it in a live Discord server. I read their contributing guide and commented on the issue to ask the maintainers what they need; no reply yet. I asked my professor if I can do this submission on my own and find a partner for the next one. The plan, team CLAUDE.md and log are in the repository. Next: watch the PR for feedback and add my reflection. Due Sun Nov 8.",
         tags: ["Python", "discord.py", "Open Source"],
         repo: "https://github.com/IbrahimCart/artifact-4-discord-bot-pr",
         demo: ""
