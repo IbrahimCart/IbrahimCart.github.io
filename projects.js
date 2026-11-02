@@ -70,9 +70,9 @@ const COURSES = [
         title: "For Someone Else",
         status: "in-progress",
         week: 5,
-        summary: "Update, Nov 1: I built the /mod cleanup command that the open-source PESU Discord bot (pesu-dev/discord_bot) asked for in their issue #92, with unit tests that pass the project's lint and coverage checks, and opened it as pull request #103. The maintainers closed it about 35 minutes later because I had not been assigned the issue, and they asked if I was part of their university. I had asked in a comment but did not wait for an answer before opening the PR. I have not run the command in a live Discord server. I asked my professor if I can do this submission on my own and find a partner for the next one. The plan, team CLAUDE.md and log are in the repository. Next: decide whether to follow up with the maintainers or hand over to a different project or group, then add my reflection. Due Sun Nov 8.",
-        tags: ["Python", "discord.py", "Open Source"],
-        repo: "https://github.com/IbrahimCart/artifact-4-discord-bot-pr",
+        summary: "Update, Nov 1: I am building a small iPhone app called Doses for my mom, who takes medication twice a day, 12 hours apart. I asked her what she needs before building anything: she wants one gentle reminder that gets firmer if she misses it, a clear sign of whether she already took it, the date of her last missed dose, and a record for her neurologist. She wants it only on her phone and does not want her medications named, so the app stores times only. The logic is written and its 12 unit tests pass; the screens are written but I have not run them on a phone yet because I still need to install Xcode. My first attempt, a pull request to another group's Discord bot, was closed by its maintainers because I had not waited to be assigned the issue, so I switched to someone I can ask and watch. I asked my professor if I can do this submission on my own. The plan, team CLAUDE.md and log are in the repository. Next: run it, install it on her phone, watch her use it and write my reflection. Due Sun Nov 8.",
+        tags: ["Swift", "SwiftUI", "iOS", "Accessibility"],
+        repo: "https://github.com/IbrahimCart/dose-reminder",
         demo: ""
       },
       {
