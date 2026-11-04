@@ -6,7 +6,7 @@
   <title>Doses · Try the app</title>
   <meta name="description" content="A web replica of Doses, my customizable reminder app for iPhone. Try it in your browser; nothing leaves your device.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23178556'/><rect x='6' y='12' width='20' height='9' rx='4.5' transform='rotate(-35 16 16)' fill='white'/></svg>">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
   <header class="demo-head">
@@ -37,7 +37,18 @@
       </div>
     </section>
 
-    <div class="phone" id="phone">
+    <div class="phone" id="phone" role="group" aria-label="iPhone 17 Pro Max showing the Doses app">
+      <i class="hw action"></i><i class="hw vol-up"></i><i class="hw vol-down"></i><i class="hw power"></i><i class="hw camera"></i>
+      <div class="bezel"><div class="display">
+      <div class="island" aria-hidden="true"></div>
+      <div class="statusbar" aria-hidden="true">
+        <span id="status-time">9:41</span>
+        <span class="sys">
+          <svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg viewBox="0 0 17 12"><path d="M8.5 11.6 6.2 9.1a3.4 3.4 0 0 1 4.6 0zM3.8 6.8a6.8 6.8 0 0 1 9.4 0l-1.5 1.6a4.6 4.6 0 0 0-6.4 0zM1.1 4a10.6 10.6 0 0 1 14.8 0l-1.5 1.6a8.4 8.4 0 0 0-11.8 0z"/></svg>
+          <svg viewBox="0 0 27 12"><rect x=".5" y=".5" width="22" height="11" rx="3.5" fill="none" stroke="#000" opacity=".4"/><rect x="2" y="2" width="19" height="8" rx="2.2"/><path d="M24 4v4c.9-.3 1.6-1.1 1.6-2S24.9 4.3 24 4z" opacity=".5"/></svg>
+        </span>
+      </div>
       <div class="banner" id="banner" role="status" aria-live="polite" hidden></div>
       <div class="screen" id="screen" tabindex="-1"></div>
       <nav class="tabs" aria-label="Main">
@@ -45,6 +56,8 @@
         <button type="button" data-view="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13" stroke-width="2.4" stroke-linecap="round"/><circle cx="3.5" cy="6" r="1.6"/><circle cx="3.5" cy="12" r="1.6"/><circle cx="3.5" cy="18" r="1.6"/></svg><span>History</span></button>
         <button type="button" data-view="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18M3 17h18" stroke-width="2.4" stroke-linecap="round"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg><span>Settings</span></button>
       </nav>
+      <div class="home-indicator" aria-hidden="true"></div>
+      </div></div>
     </div>
   </main>
 
@@ -85,6 +98,6 @@
   <canvas id="confetti" aria-hidden="true" hidden></canvas>
   <noscript><p class="noscript">This demo needs JavaScript.</p></noscript>
   <script src="logic.js?v=1"></script>
-  <script src="app.js?v=1"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

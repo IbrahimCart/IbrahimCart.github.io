@@ -125,6 +125,7 @@
       if (b.dataset.view === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
     const d = new Date(now());
+    $("#status-time").textContent = timeText(now()).replace(/\s?[AP]M$/, "");
     $("#clock").textContent = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) + " · " + timeText(now()) +
       (clockOffset ? " (demo time)" : " (real time)");
     $("#clock-input").value = pad(d.getHours()) + ":" + pad(d.getMinutes());
