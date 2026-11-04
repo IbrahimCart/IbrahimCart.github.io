@@ -33,8 +33,8 @@ const COURSES = [
         title: "Portfolio Setup & AI Log",
         status: "released", // "released" | "in-progress" | "upcoming"
         week: 2,
-        summary: "Static portfolio deployed with GitHub Pages, with light/dark mode, a data-driven layout and a prompt log for course submissions.",
-        tags: ["HTML", "CSS", "JavaScript", "GitHub Pages"],
+        summary: "My TCSS 490 portfolio, built as a small video-game world. This island is home base: every other artifact is its own island with its own biome, joined to this one by a bridge, and the little islets off the coast are saved for future projects. A pixel version of me walks the bridges toward your cursor, clicking an island opens its card, and the Moonshot launches a rocket to the moon. It is plain HTML, CSS and JavaScript on GitHub Pages with no framework: the islands, bridges, cards and quest log are all generated from one data file, so adding an artifact adds an island. The prompt log for the quarter is linked at the top of the map. Reflection: I started with a simple card grid and rebuilt it as a game one request at a time, checking each version on a local preview and saying what felt wrong, like the map being too zoomed in or the Earth looking too 3D. Describing exactly what was off worked much better than asking for something new from scratch.",
+        tags: ["HTML", "CSS", "JavaScript", "SVG", "WebGL", "GitHub Pages"],
         repo: "https://github.com/IbrahimCart/IbrahimCart.github.io",
         demo: ""
       },
