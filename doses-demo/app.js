@@ -108,11 +108,21 @@
       (reminders.length < L.MAX_REMINDERS ? '<button type="button" class="add" data-action="add">+ Add a reminder</button>' : "") + "</div>" +
       '<p class="foot">Up to ' + L.MAX_REMINDERS + ". Names you type are kept only in this browser (in the iPhone app they also show in the reminder on your lock screen). " +
       "Tap a reminder to change or delete it; what you already recorded stays in History.</p>" +
-      '<h3 class="section">Repeats</h3><div class="list"><div class="li"><span>Count as missed after ' + hours + " " + (hours === 1 ? "hour" : "hours") +
-      '</span><span class="stepper"><button type="button" aria-label="Fewer hours" data-action="grace" data-delta="-1"' + (hours <= 1 ? " disabled" : "") +
-      '>−</button><button type="button" aria-label="More hours" data-action="grace" data-delta="1"' + (hours >= 4 ? " disabled" : "") + ">+</button></span></div></div>" +
+      '<h3 class="section">Repeats</h3><div class="list"><div class="li grace"><label for="grace-input">Count as missed after</label>' +
+      '<div class="grace-row"><span class="grace-field"><input type="text" id="grace-input" class="grace-input" inputmode="numeric" maxlength="2" autocomplete="off" value="' + hours +
+      '" aria-label="Hours until a dose counts as missed"> <span>' + (hours === 1 ? "hour" : "hours") + '</span></span>' +
+      '<span class="stepper"><button type="button" aria-label="Fewer hours" data-action="grace" data-delta="-1"' + (hours <= MIN_GRACE_HOURS ? " disabled" : "") +
+      '>−</button><button type="button" aria-label="More hours" data-action="grace" data-delta="1"' + (hours >= MAX_GRACE_HOURS ? " disabled" : "") + ">+</button></span></div></div></div>" +
+      '<p class="foot">Type a number of hours from ' + MIN_GRACE_HOURS + " to " + MAX_GRACE_HOURS + ", or use the arrows.</p>" +
       '<p class="foot">In the iPhone app you also get one gentle reminder at the set time, and it repeats until you tap &ldquo;I took it&rdquo;.</p>' +
       '<p class="privacy">In this demo everything stays in your browser. Nothing is sent anywhere. This app is a reminder and a record only. Always follow your doctor\'s and pharmacist\'s instructions.</p>';
+  }
+
+  // "Count as missed after N hours": typed in the box or stepped with the arrows, always kept between the limits.
+  const MIN_GRACE_HOURS = 1, MAX_GRACE_HOURS = 24;
+  function setGraceHours(hours) {
+    const h = Math.min(MAX_GRACE_HOURS, Math.max(MIN_GRACE_HOURS, Math.round(hours)));
+    changeSchedule((s) => { s.graceMinutes = h * 60; });
   }
 
   function render() {
@@ -271,7 +281,7 @@
       case "toggle": changeSchedule((s) => { const r = s.reminders.find((x) => x.id === el.dataset.rid); if (r) r.isEnabled = !r.isEnabled; }); break;
       case "edit": openEditor(el.dataset.rid); break;
       case "add": openEditor(null); break;
-      case "grace": changeSchedule((s) => { s.graceMinutes = Math.min(240, Math.max(60, s.graceMinutes + Number(el.dataset.delta) * 60)); }); break;
+      case "grace": setGraceHours(log.schedule.graceMinutes / 60 + Number(el.dataset.delta)); break;
       case "addnote": $("#note-text").value = ""; $("#note-dialog").showModal(); break;
       case "delnote": L.removeNote(log, el.dataset.id); save(); render(); break;
       case "share": $("#report-text").textContent = L.report(log, now()); $("#report-dialog").showModal(); break;
@@ -286,6 +296,18 @@
         break;
     }
   });
+
+  // The typed hours: digits only while typing, applied when the box loses focus or Enter is pressed.
+  document.addEventListener("input", (e) => {
+    if (e.target.matches(".grace-input")) e.target.value = e.target.value.replace(/\D/g, "");
+  });
+  function applyTypedGrace(input) {
+    const typed = parseInt(input.value, 10);
+    if (Number.isNaN(typed)) render(); // empty: put the current number back
+    else setGraceHours(typed);
+  }
+  document.addEventListener("change", (e) => { if (e.target.matches(".grace-input")) applyTypedGrace(e.target); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".grace-input")) applyTypedGrace(e.target); });
 
   $("#clock-input").addEventListener("change", (e) => {
     const [h, m] = e.target.value.split(":").map(Number);
@@ -315,5 +337,6 @@
   fitPhone();
 
   render();
-  setInterval(render, 15000); // a dose can flip from due to missed while the page is open
+  // A dose can flip from due to missed while the page is open. Don't redraw while someone is typing in the box.
+  setInterval(() => { if (!document.activeElement || !document.activeElement.matches(".grace-input")) render(); }, 15000);
 })();
