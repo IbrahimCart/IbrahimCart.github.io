@@ -50,19 +50,21 @@ button, input, textarea { font: inherit; }
 /* Phone */
 /* iPhone 17 Pro Max: 440 x 956 pt screen, titanium frame, Dynamic Island, side buttons, status bar, home indicator */
 .phone {
-  position: relative; width: 394px; max-width: 100%; flex: none; padding: 11px; border-radius: 64px;
+  position: relative; width: 384px; padding: 4px; border-radius: 56px;
   background: linear-gradient(135deg, #5a6578 0%, #2b3342 18%, #1b212d 50%, #333d4f 82%, #626d80 100%);
   box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .28), inset 0 0 0 3px rgba(0, 0, 0, .35), 0 24px 60px rgba(0, 0, 0, .55);
   color: var(--ink); color-scheme: light;
 }
-.bezel { background: #000; border-radius: 53px; padding: 5px; }
+.bezel { background: #000; border-radius: 52px; padding: 4px; }
+/* The phone keeps its shape at every width: JS sets zoom so it shrinks to fit instead of changing design. */
+.phone-wrap { width: min(100%, 384px); flex: none; }
 .display { position: relative; aspect-ratio: 440 / 956; border-radius: 48px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
-.hw { position: absolute; width: 4px; border-radius: 2px; background: linear-gradient(90deg, #4a5468, #1d2431); }
-.hw.action { left: -3px; top: 128px; height: 30px; }
-.hw.vol-up { left: -3px; top: 186px; height: 58px; }
-.hw.vol-down { left: -3px; top: 258px; height: 58px; }
-.hw.power { right: -3px; top: 222px; height: 94px; background: linear-gradient(270deg, #4a5468, #1d2431); }
-.hw.camera { right: -3px; top: 530px; height: 62px; background: linear-gradient(270deg, #4a5468, #1d2431); }
+.hw { position: absolute; width: 3px; border-radius: 2px; background: linear-gradient(90deg, #4a5468, #1d2431); }
+.hw.action { left: -2px; top: 128px; height: 30px; }
+.hw.vol-up { left: -2px; top: 186px; height: 58px; }
+.hw.vol-down { left: -2px; top: 258px; height: 58px; }
+.hw.power { right: -2px; top: 222px; height: 94px; background: linear-gradient(270deg, #4a5468, #1d2431); }
+.hw.camera { right: -2px; top: 530px; height: 62px; background: linear-gradient(270deg, #4a5468, #1d2431); }
 .island { position: absolute; z-index: 6; top: 11px; left: 50%; width: 118px; height: 34px; transform: translateX(-50%); background: #000; border-radius: 20px; }
 .island::after { content: ""; position: absolute; right: 12px; top: 11px; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #2b3a63, #0a0d18 60%); }
 .statusbar { position: relative; z-index: 5; flex: none; height: 54px; padding: 16px 30px 0 36px; display: flex; justify-content: space-between; align-items: flex-start; font-weight: 600; font-size: 16px; background: #fff; }
@@ -151,13 +153,7 @@ dialog pre { max-height: 50vh; overflow: auto; background: var(--card); border-r
 
 @media (max-width: 520px) {
   .stage { padding: 10px; gap: 16px; }
-  /* On a real phone a fake phone is silly: drop the hardware and show the app full width. */
-  .phone { order: -1; width: 100%; padding: 6px; border-radius: 30px; background: #2b2d31; box-shadow: none; }
-  .bezel { padding: 0; border-radius: 24px; background: none; }
-  .display { aspect-ratio: auto; height: min(760px, 84svh); border-radius: 24px; }
-  .hw, .island, .statusbar, .home-indicator { display: none; }
-  .screen { padding-top: 16px; }
-  .banner { top: 10px; }
+  .phone-wrap { order: -1; } /* the app first, the demo clock below it */
   .controls { max-width: none; }
 }
 @media (prefers-reduced-motion: reduce) {

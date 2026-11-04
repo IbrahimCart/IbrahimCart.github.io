@@ -292,6 +292,14 @@
     if (!Number.isNaN(h)) jumpTo(h, m);
   });
 
+  // Shrink the whole phone to fit narrow windows, so it still looks like an iPhone.
+  function fitPhone() {
+    const wrap = $("#phone-wrap");
+    $("#phone").style.zoom = Math.min(1, wrap.clientWidth / 384);
+  }
+  window.addEventListener("resize", fitPhone);
+  fitPhone();
+
   render();
   setInterval(render, 15000); // a dose can flip from due to missed while the page is open
 })();
