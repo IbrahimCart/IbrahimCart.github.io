@@ -293,17 +293,21 @@
   });
 
   // Shrink the whole phone to fit narrow windows, so it still looks like an iPhone.
-  // Side by side with the demo clock, it also fits the window's height so the whole phone is always visible.
-  // Browser zoom changes the window size in layout terms, so it triggers a resize too.
+  // The phone keeps the same physical size at every browser zoom. Zooming enlarges everything by the zoom
+  // factor, so the phone is scaled by its inverse. (Only a window narrower than the phone makes it shrink.)
+  const ZOOM_LEVELS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
+  function browserZoom() {
+    if (window.__dosesZoom) return window.__dosesZoom; // lets tests set a zoom
+    const ratio = window.outerWidth / window.innerWidth; // on desktop browsers this is the page zoom
+    if (!isFinite(ratio) || ratio <= 0) return 1;
+    const nearest = ZOOM_LEVELS.reduce((a, b) => (Math.abs(b - ratio) < Math.abs(a - ratio) ? b : a));
+    return Math.abs(nearest - ratio) <= 0.06 ? nearest : 1; // not a zoom level (e.g. a docked panel): ignore it
+  }
   function fitPhone() {
-    const wrap = $("#phone-wrap"), phone = $("#phone");
-    phone.style.zoom = 1;
-    let scale = Math.min(1, wrap.clientWidth / phone.offsetWidth);
-    if (window.matchMedia("(min-width: 761px)").matches) {
-      const top = wrap.getBoundingClientRect().top + window.scrollY;
-      scale = Math.min(scale, Math.max(0.5, (window.innerHeight - top - 16) / phone.offsetHeight));
-    }
-    phone.style.zoom = scale;
+    const host = $("#phone-wrap").parentElement, cs = getComputedStyle(host);
+    const avail = host.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const scale = Math.min(1 / browserZoom(), avail / 384);
+    document.documentElement.style.setProperty("--phone-scale", scale);
   }
   window.addEventListener("resize", fitPhone);
   window.addEventListener("load", fitPhone);

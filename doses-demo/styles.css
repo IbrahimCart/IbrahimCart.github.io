@@ -12,6 +12,7 @@
   --panel-border: #2b3240;
   --page-text: #e8eaed;
   --page-muted: #a1a7b3;
+  --phone-scale: 1; /* set by app.js: the inverse of the browser zoom, so the phone never changes size */
 }
 * { box-sizing: border-box; }
 html { color-scheme: dark; }
@@ -32,7 +33,7 @@ button, input, textarea { font: inherit; }
 .demo-head p { margin: 0; color: var(--page-muted); font-size: 14px; max-width: 70ch; }
 
 .stage {
-  display: grid; grid-template-columns: minmax(260px, 360px) 384px; grid-template-rows: auto 1fr;
+  display: grid; grid-template-columns: minmax(260px, 360px) calc(384px * var(--phone-scale)); grid-template-rows: auto 1fr;
   grid-template-areas: "head phone" "controls phone"; column-gap: 40px; row-gap: 18px;
   justify-content: center; align-items: start; max-width: 900px; margin: 0 auto; padding: 20px 16px;
 }
@@ -58,11 +59,11 @@ button, input, textarea { font: inherit; }
   position: relative; width: 384px; padding: 4px; border-radius: 56px;
   background: linear-gradient(135deg, #5a6578 0%, #2b3342 18%, #1b212d 50%, #333d4f 82%, #626d80 100%);
   box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .28), inset 0 0 0 3px rgba(0, 0, 0, .35), 0 24px 60px rgba(0, 0, 0, .55);
-  color: var(--ink); color-scheme: light;
+  color: var(--ink); color-scheme: light; zoom: var(--phone-scale);
 }
 .bezel { background: #000; border-radius: 52px; padding: 4px; }
 /* The phone keeps its shape at every width: JS sets zoom so it shrinks to fit instead of changing design. */
-.phone-wrap { grid-area: phone; justify-self: center; align-self: start; width: min(100%, 384px); }
+.phone-wrap { grid-area: phone; justify-self: center; align-self: start; width: calc(384px * var(--phone-scale)); max-width: 100%; }
 .display { position: relative; aspect-ratio: 440 / 956; border-radius: 48px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
 .hw { position: absolute; width: 3px; border-radius: 2px; background: linear-gradient(90deg, #4a5468, #1d2431); }
 .hw.action { left: -2px; top: 128px; height: 30px; }
@@ -159,7 +160,8 @@ dialog pre { max-height: 50vh; overflow: auto; background: var(--card); border-r
 /* The layout stacks below this width (clock + phone no longer fit side by side): put the app first. */
 /* Too narrow to sit side by side: one column, header, then the phone, then the demo clock. */
 @media (max-width: 760px) {
-  .stage { grid-template-columns: minmax(0, 560px); grid-template-rows: auto; grid-template-areas: "head" "phone" "controls"; row-gap: 16px; }
+  .stage { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "head" "phone" "controls"; row-gap: 16px; justify-items: center; }
+  .demo-head, .controls { width: 100%; max-width: 560px; }
 }
 @media (max-width: 520px) {
   .stage { padding: 10px; }
