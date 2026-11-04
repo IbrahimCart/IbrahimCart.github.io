@@ -400,6 +400,7 @@
       `<rect x="${x - 5}" y="${y - 24}" width="10" height="9"/><rect class="visor" x="${x - 2}" y="${y - 21}" width="6" height="4"/></g>`;
     const ROCKET = `<svg viewBox="-26 -92 52 140" width="52" height="140" aria-hidden="true">
       <g class="flame"><path d="M-9-12Q0 40 9-12Z" fill="#ff8a2a"/><path d="M-5-12Q0 22 5-12Z" fill="#fff3a6"/></g>
+      <g class="legs" stroke="#2b2a33" stroke-width="2.5" stroke-linecap="round" fill="none"><path d="M-8-20L-17-1M8-20L17-1"/><path d="M-21-1H-13M13-1H21" stroke-width="3"/></g>
       <g stroke="#2b2a33" stroke-width="2" stroke-linejoin="round"><path d="M-11-36L-23-8L-10-14Z" fill="#c8553d"/><path d="M11-36L23-8L10-14Z" fill="#c8553d"/>
       <path d="M0-86C16-68 14-36 10-12H-10C-14-36-16-68 0-86Z" fill="#eef0f4"/><circle cy="-54" r="6" fill="#6cc3e8"/></g></svg>`;
     const LOCK = '<svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="6" width="10" height="8" fill="currentColor"/><path d="M3 6V4a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
@@ -1138,7 +1139,8 @@
       <div class="ss-sky" aria-hidden="true">${starField(2026)}</div>
       <div class="ss-moon" aria-hidden="true">
         ${moonSVG()}
-        <div class="ss-crew"><svg viewBox="-20 -40 60 44" width="90" height="66">${ASTRO(0, 0)}<path class="pole" d="M18 0V-34"/><rect class="flag" x="18" y="-34" width="18" height="11"/></svg></div>
+        <svg class="ss-crew ss-astro" viewBox="-10 -26 20 26" width="30" height="39">${ASTRO(0, 0)}</svg>
+        <svg class="ss-crew ss-flag" viewBox="16 -36 22 36" width="33" height="54"><path class="pole" d="M18 0V-34"/><rect class="flag" x="18" y="-34" width="18" height="11"/></svg>
       </div>
       <div class="ss-ship" aria-hidden="true">${ROCKET}</div>
       <p class="ss-caption">Touchdown on the Moon!</p>
@@ -1203,6 +1205,17 @@
       const md = Math.round(Math.max(140, Math.min(300, Math.min(free, sh) * .32)));
       sky = { free, sh, gx: free * .3, gy: sh, gd, mx: free * .72, my: sh * .38, md };
       for (const k of ["free", "gx", "gy", "gd", "mx", "my", "md"]) scene.style.setProperty("--" + k, sky[k] + "px");
+      // The moon's visible radius. The crew stand on the circle itself: each sits where the
+      // surface is at its own sideways offset, turned to stand upright on the curve.
+      sky.mr = md * .49;
+      const stand = (k, f, dx) => {
+        const x = sky.mr * f, y = -Math.sqrt(sky.mr * sky.mr - x * x) + 3;   // 3px sunk into the ground
+        scene.style.setProperty("--" + k + "x", x + dx + "px");
+        scene.style.setProperty("--" + k + "y", y + "px");
+        scene.style.setProperty("--" + k + "r", Math.asin(f) * 180 / Math.PI + "deg");
+      };
+      stand("a", .4, -15);     // astronaut, right of the rocket (svg is 30px wide)
+      stand("f", .66, -3);     // flag planted right beside the astronaut (pole sits 3px in from the svg's left edge)
     }
     const VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
     // Storybook look to match the map: crisp, gently shaded, lit from the moon's side,
@@ -1443,7 +1456,7 @@
     // back on the launch pad on the map before the traveler steps out.
     // ---- The rocket's flight between Earth and the moon ----
     const ship = scene.querySelector(".ss-ship");
-    const moonTop = () => [sky.mx, sky.my - sky.md / 2];
+    const moonTop = () => [sky.mx, sky.my - sky.mr + 2];   // the feet are the rocket's origin
     // Where the launch island is on the globe right now (or a spot on Earth without WebGL).
     function islePoint() {
       const i = stops.findIndex((_, k) => isLaunch(k)), st = earth.st;

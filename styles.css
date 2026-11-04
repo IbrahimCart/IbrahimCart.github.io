@@ -488,7 +488,9 @@ h2::before { content: ""; display: inline-block; width: 12px; height: 12px; marg
 .ss-ship { position: absolute; width: 52px; height: 140px; transform-origin: 26px 92px; pointer-events: none; visibility: hidden; }
 .ss-ship.show { visibility: visible; }
 .space-scene.landed .flame { display: none; }
-.ss-crew { position: absolute; left: calc(50% + 34px); top: -60px; transform: scale(0); transform-origin: 50% 100%; transition: transform .35s cubic-bezier(.3, 1.6, .5, 1) .2s; }
+.ss-crew { position: absolute; left: 50%; top: 50%; transform: scale(0); transform-origin: 50% 100%; transition: transform .35s cubic-bezier(.3, 1.6, .5, 1) .2s; }
+.ss-moon > .ss-astro { width: 30px; height: 39px; margin: 0; translate: var(--ax) calc(var(--ay) - 39px); rotate: var(--ar); }
+.ss-moon > .ss-flag { width: 33px; height: 54px; translate: var(--fx) calc(var(--fy) - 54px); rotate: var(--fr); transform-origin: 9% 100%; }
 .space-scene.landed .ss-crew { transform: scale(1); }
 .ss-caption { position: absolute; top: calc(var(--my) - var(--md) / 2 - 150px); left: calc(var(--mx) - 220px); width: 440px; margin: 0; text-align: center; color: #fff; opacity: 0;
   font: 600 clamp(22px, 3vw, 34px) "Pixelify Sans", Inter, sans-serif; text-shadow: 3px 3px 0 #000; transition: opacity .4s ease .3s; }
