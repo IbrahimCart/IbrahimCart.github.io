@@ -15,7 +15,8 @@ const PROFILE = {
   tagline: "Computer Science student at the University of Washington",
   github: "https://github.com/IbrahimCart",
   email: "okrioaks@uw.edu",
-  linkedin: "", // e.g. "https://www.linkedin.com/in/your-name"
+  linkedin: "https://www.linkedin.com/in/ibrahimcartan/",
+  handshake: "https://app.joinhandshake.com/profiles/any5za",
   // Shown in the About me panel when no island is selected. Write it in your own words.
   about: "Hi! I'm Ibrahim, a Computer Science student at the University of Washington. I like building practical tools that people actually use, like a Discord music bot, an AI code reviewer and an iPhone reminder app I made for my mom. This world is my TCSS 490 portfolio: every island is a project, and new ones will appear as I build them."
 };

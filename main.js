@@ -24,7 +24,8 @@
   const contactLinks = [
     ["GitHub", PROFILE.github],
     ["Email", PROFILE.email && "mailto:" + PROFILE.email],
-    ["LinkedIn", PROFILE.linkedin]
+    ["LinkedIn", PROFILE.linkedin],
+    ["Handshake", PROFILE.handshake]
   ].filter(([, u]) => u)
     .map(([l, u]) => `<a class="btn small" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("");
   $("links").innerHTML = contactLinks;
@@ -294,12 +295,27 @@
     let W = 0, H = 0, zoom = 1, shiftY = 0, narrow = null;
     // The hub island (stop 0) sits in the middle; every other stop is an island
     // joined to it by a bridge. spokes[k] runs from the hub centre to stop k.
-    let hub, stops, spokes, isles;
+    let hub, stops, spokes, isles, planet;
+    // Is (x, y) on the globe, at least m pixels in from its curved edge?
+    // The stacked (phone) layout is used whenever the map itself is narrow, including a
+    // small window where the docked panel leaves the map little room.
+    const isNarrow = () => innerWidth < 760 || map.clientWidth < 700;
+    const inPlanet = (x, y, m) => Math.hypot(x - planet.x, y - planet.y) < planet.r - m;
+    // Perspective on the globe: things near the curved horizon are smaller, squashed and
+    // tilted to follow the curve; things near the bottom of the screen are full size.
+    function persp(x, y) {
+      const edge = planet.y - Math.sqrt(Math.max(0, planet.r ** 2 - (x - planet.x) ** 2));
+      const t = Math.max(0, Math.min(1, (y - edge) / Math.max(1, H - edge)));
+      const s = narrow ? .84 + .2 * t : .7 + .4 * t, fy = narrow ? .86 + .14 * t : .7 + .3 * t;
+      return { s, fy, rot: Math.atan2(x - planet.x, planet.y - y) * 180 / Math.PI };
+    }
+    const tfAt = (x, y, p = persp(x, y)) =>
+      `translate(${f(x)} ${f(y)}) rotate(${f(p.rot)}) scale(${f(p.s)} ${f(p.s * p.fy)}) translate(${f(-x)} ${f(-y)})`;
     // The traveler is d pixels out along spoke s (d = 0 is the hub).
     let pos = { s: 1, d: 0 }, target = { s: 1, d: 0 };
     let active = 0, raf = 0, last = 0, shown = -1, opener = null;
     // Launch state: the stop waiting for the traveler to arrive, and whether we're in space.
-    let launchAt = -1, inSpace = false, launchRun = 0;
+    let launchAt = -1, inSpace = false, launchRun = 0, launchScroll = null;
 
     const f = (n) => Math.round(n * 10) / 10;
     const rng = (a) => () => {
@@ -393,15 +409,22 @@
     const navH = () => document.querySelector(".nav").offsetHeight;
     const wantH = () => Math.max(640, innerHeight - navH());
     function build() {
-      narrow = innerWidth < 760;
+      narrow = isNarrow();
       map.classList.toggle("narrow", narrow);
       W = map.clientWidth;
       const banner = map.querySelector(".banner"), hud = $("hud");
       const M = Math.max(1, N - 1);
       let cx, cy, rx, ry, a0, R, RH;
+      // The map is the top of a big globe seen up close: its edge curves away (e0 is
+      // where it peaks, sag how far it drops by the sides) and dark sky shows above it,
+      // with the Big Dipper there (dip: centre and width).
+      let dip, e0, sag;
       if (narrow) {
         hud.style.top = banner.offsetTop + banner.offsetHeight + 10 + "px";
-        const top = hud.offsetTop + hud.offsetHeight;
+        const below = hud.offsetTop + hud.offsetHeight;
+        dip = { w: Math.min(220, W - 60), x: W / 2, y: below + 62 };
+        e0 = below + 130; sag = 40;
+        const top = e0 + 10;
         // Phones: islands stacked above and below the hub, alternating sides.
         R = 60; RH = 80;
         rx = W / 2 - R - 18; ry = 240;
@@ -410,12 +433,36 @@
         H = cy + Math.floor(M / 2) * ry + R + 150;
       } else {
         hud.style.top = "";
+        // If the map is too narrow for the title and the HUD side by side, drop the HUD under it.
+        if (banner.offsetLeft + banner.offsetWidth + 12 > hud.offsetLeft) hud.style.top = banner.offsetTop + banner.offsetHeight + 10 + "px";
         H = wantH();
-        R = Math.max(78, Math.min(115, Math.min(W, H) * .105)); RH = R * 1.3;
+        const bb = banner.offsetTop + banner.offsetHeight, hb = hud.offsetTop + hud.offsetHeight;
+        // A thin strip of sky just under the title and the HUD holds the Dipper; the globe's
+        // curve starts right below it.
+        const gapL = banner.offsetLeft + banner.offsetWidth + 16, gapR = hud.offsetLeft - 16;
+        if (gapR - gapL >= 150) {
+          // Room between the title and the HUD: the Dipper hangs there and the globe starts just below.
+          dip = { w: Math.round(Math.min(220, gapR - gapL)), x: (gapL + gapR) / 2 };
+          dip.y = 14 + dip.w / 4;
+          e0 = 14 + dip.w / 2 + 22;
+        } else {
+          const over = Math.max(bb, hb);
+          dip = { w: Math.round(Math.min(220, Math.max(160, W * .2))) };
+          dip.x = Math.max(dip.w / 2 + 10, Math.min(W - dip.w / 2 - 10, W * .6));
+          dip.y = over + 10 + dip.w / 4;
+          e0 = over + 10 + dip.w / 2 + 18;
+        }
+        sag = Math.min(120, Math.max(70, H * .13));
+        R = W < 1000 ? Math.max(54, Math.min(W, H) * .085) : Math.max(64, Math.min(115, Math.min(W, H) * .1)); RH = R * 1.3;
         rx = Math.min(W * .36, W / 2 - R - 50); ry = H * .36;
-        a0 = -90;
+        a0 = -10;                            // fan out from just above right, round the bottom, to left
         cx = W / 2; cy = H * .5;
+        // Keep the home island (and its cabin) well inside the curve of the globe.
+        cy = Math.max(cy, e0 + RH * 1.25 + 14);
+        ry = Math.min(ry, Math.max(140, H - cy - R - 60));
       }
+      const Rg = (W / 2) ** 2 / (2 * sag) + sag / 2;
+      planet = { x: W / 2, y: e0 + Rg, r: Rg };
       map.style.height = H + "px";
       inner.style.width = W + "px";
       svg.setAttribute("width", W);
@@ -445,7 +492,8 @@
       hub = [Math.round(cx), Math.round(cy)];
       isles = [{ x: hub[0], y: hub[1], r: shape(RH), R: RH }];
       stops = [hub];
-      const turn = narrow ? 0 : rnd() * 60 - 30;
+      const turn = narrow ? 0 : rnd() * 24 - 12;
+      const step = narrow ? 360 / M : M > 1 ? 200 / (M - 1) : 0;
       for (let k = 1; k < N; k++) {
         if (narrow) {
           const idx = k - 1, row = Math.floor(idx / 2) + 1, up = idx % 2 === 0;
@@ -456,9 +504,19 @@
           stops.push([x, y]);
           continue;
         }
-        const home = a0 + turn + (k - 1) * 360 / M;
-        const fits = (x, y, Rk) => x > Rk + 24 && x < W - Rk - 24 && y > Rk + 70 && y < H - Rk - 70 &&
-          isles.every((o) => Math.hypot(o.x - x, o.y - y) > o.R + Rk + (o === isles[0] ? 70 : 60)) && clearOf(x, y, Rk);
+        const home = a0 + turn + (k - 1) * step;
+        const fits = (x, y, Rk) => x > Rk + 24 && x < W - Rk - 24 && y > Rk + 70 && inPlanet(x, y, Rk + 12) && y < H - Rk - 70 &&
+          isles.every((o) => Math.hypot(o.x - x, o.y - y) > o.R + Rk + (o === isles[0] ? 70 : 60) &&
+            // and clear of the name tag that hangs under each landmark (both ways)
+            !(Math.abs(x - o.x) < 95 + Rk && y > o.y && y - Rk < o.y + 105) &&
+            !(Math.abs(x - o.x) < 95 + o.R && o.y > y && o.y - o.R < y + 105)) && clearOf(x, y, Rk) &&
+          // no bridge may cross another island: not this one's, and not the ones already built
+          isles.slice(1).every((o) => segPt(o.x, o.y, hub[0], hub[1], x, y) > o.R * 1.1 + 12 &&
+            segPt(x, y, hub[0], hub[1], o.x, o.y) > Rk * 1.1 + 12);
+        const segPt = (px, py, ax, ay, bx, by) => {
+          const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1)));
+          return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
+        };
         const at = (deg, far) => [Math.round(cx + Math.cos(deg * Math.PI / 180) * rx * far), Math.round(cy + Math.sin(deg * Math.PI / 180) * ry * far)];
         let best = null;
         // First try random nudges around this island's rough direction...
@@ -472,6 +530,17 @@
             const [x, y] = at(home + sgn * d, far);
             if (!best && fits(x, y, R * .85)) best = { x, y, R: R * .85 };
           }
+        }
+        // ...then scan the whole globe for any clear spot (smaller island), and only then give up.
+        for (const k of [.8, .68]) {
+          let pick = null, pd = Infinity;
+          for (let gy = 0; gy < H && !best; gy += 18) for (let gx = 0; gx < W; gx += 18) {
+            if (!fits(gx, gy, R * k)) continue;
+            const [hx, hy] = at(home, 1), dd = Math.hypot(gx - hx, gy - hy);   // closest to where it wanted to be
+            if (dd < pd) { pd = dd; pick = { x: gx, y: gy, R: R * k }; }
+          }
+          if (!best && pick) best = pick;
+          if (best) break;
         }
         if (!best) { const [x, y] = at(home, 1); best = { x, y, R }; }
         isles.push({ x: best.x, y: best.y, r: shape(best.R), R: best.R });
@@ -507,7 +576,7 @@
             crosses = isles.slice(1).some((o) => Math.hypot(o.x - px, o.y - py) < o.R * 1.2 + 8);
           }
           if (crosses) continue;
-          const ok = x > Math.max(r + 16, 54) && x < W - Math.max(r + 16, 54) && y > r + 20 && y < H - r - 40 && clearOf(x, y, r) &&
+          const ok = x > Math.max(r + 16, 54) && x < W - Math.max(r + 16, 54) && y > r + 20 && inPlanet(x, y, r + 22) && y < H - r - 40 && clearOf(x, y, r) &&
             isles.every((o) => Math.hypot(o.x - x, o.y - y) > o.R * 1.15 + r + 24) &&
             islets.every((o) => Math.hypot(o.x - x, o.y - y) > o.r + r + 60) &&
             spokes.slice(1).every((sp) => segDist(x, y, sp) > r + 34) &&
@@ -534,7 +603,7 @@
           if (avoid.some((d) => angGap(a, d) < .5)) continue;
           const r = 6 + rnd() * 12, reach = is.r(a) * 1.14 + r + 6 + rnd() * 36;
           const x = is.x + Math.cos(a) * reach, y = is.y + Math.sin(a) * reach;
-          const ok = x > r + 8 && x < W - r - 8 && y > r + 8 && y < H - r - 8 && clearOf(x, y, r * .5) &&
+          const ok = x > r + 8 && x < W - r - 8 && inPlanet(x, y, r + 12) && y < H - r - 8 && clearOf(x, y, r * .5) &&
             spokes.slice(1).every((sp) => segDist(x, y, sp) > r + 18) &&
             isles.every((o) => o === is || Math.hypot(o.x - x, o.y - y) > o.R * 1.25 + r + 10) &&
             smalls.every((o) => Math.hypot(o.x - x, o.y - y) > o.r + r + 12) &&
@@ -549,8 +618,8 @@
       // Open water away from land and bridges, where fish may jump.
       seaSpot = () => {
         for (let t = 0; t < 40; t++) {
-          const x = 30 + Math.random() * (W - 60), y = 140 + Math.random() * (H - 180);
-          if (!onLand(x, y, 30) && spokes.slice(1).every((sp) => segDist(x, y, sp) > 30) && clearOf(x, y, 20)) return [x, y];
+          const x = 30 + Math.random() * (W - 60), y = e0 + 30 + Math.random() * (H - e0 - 60);
+          if (inPlanet(x, y, 24) && !onLand(x, y, 30) && spokes.slice(1).every((sp) => segDist(x, y, sp) > 30) && clearOf(x, y, 20)) return [x, y];
         }
         return null;
       };
@@ -586,7 +655,7 @@
             rad = rad.map((r, t) => Math.max(r, (rad[(t + 71) % 72] + rad[(t + 1) % 72]) / 2));
           }
           const pts = ang.map((a, t) => [is.x + Math.cos(a) * rad[t], is.y + Math.sin(a) * rad[t]]);
-          const clear = pts.every(([x, y]) => x > 8 && x < W - 8 && y > 8 && y < H - 8 &&
+          const clear = pts.every(([x, y]) => x > 8 && x < W - 8 && inPlanet(x, y, 12) && y < H - 8 &&
             isles.every((o) => o === is || Math.hypot(x - o.x, y - o.y) > o.r(Math.atan2(y - o.y, x - o.x)) * 1.06 + 6) &&
             smalls.every((o) => Math.hypot(x - o.x, y - o.y) > o.r * 1.1 + 5) &&
             islets.every((o) => Math.hypot(x - o.x, y - o.y) > o.r * 1.2 + 5));
@@ -614,7 +683,12 @@
         for (let pass = 0; pass < 8; pass++) rad = rad.map((r, t) => Math.max(r, (rad[(t + 89) % 90] + rad[(t + 1) % 90]) / 2));
         const pts = rad.map((r, t) => {
           const a = t / 90 * Math.PI * 2;
-          return [Math.max(14, Math.min(W - 14, hub[0] + Math.cos(a) * r)), Math.max(130, Math.min(H - 14, hub[1] + Math.sin(a) * r))];
+          let x = Math.max(14, Math.min(W - 14, hub[0] + Math.cos(a) * r)), y = Math.min(H - 14, hub[1] + Math.sin(a) * r);
+          if (!inPlanet(x, y, 16)) {          // pull back inside the curve of the globe
+            const d = Math.hypot(x - planet.x, y - planet.y), k = (planet.r - 16) / d;
+            x = planet.x + (x - planet.x) * k; y = planet.y + (y - planet.y) * k;
+          }
+          return [x, y];
         });
         if (pts.every(([x, y]) => !landAt(x, y, 4))) {
           if (rnd() < .5) pts.reverse();
@@ -627,14 +701,23 @@
 
       let waves = "";
       for (let t = 0; t < W * H / 5000; t++) {
-        const x = rnd() * W, y = rnd() * H;
-        if (!onLand(x, y, 26)) waves += `M${f(x)} ${f(y)}q4-4 8 0t8 0`;
+        const x = rnd() * W, y = e0 + 8 + rnd() * (H - e0 - 8);
+        if (inPlanet(x, y, 10) && !onLand(x, y, 26)) waves += `M${f(x)} ${f(y)}q4-4 8 0t8 0`;
       }
 
       // Bridges over the water (dashed planks lead to locked islands), trails on land.
+      const PZ = isles.map((is) => persp(is.x, is.y));
+      // A world direction (ux, uy) seen in island i's own (unsquashed) drawing.
+      const toLocalDir = (i, ux, uy) => {
+        const p = PZ[i], r = -p.rot * Math.PI / 180;
+        const dx = ux * Math.cos(r) - uy * Math.sin(r), dy = ux * Math.sin(r) + uy * Math.cos(r);
+        return [dx / p.s, dy / (p.s * p.fy)];
+      };
+      // How far island i's (squashed) coast is from its centre in world direction (ux, uy).
+      const coastW = (i, ux, uy) => { const v = toLocalDir(i, ux, uy); return isles[i].r(Math.atan2(v[1], v[0])) / Math.hypot(v[0], v[1]); };
       const bridges = spokes.slice(1).map((sp) => {
-        const a = sp.a, is = isles[sp.k];
-        const b0 = isles[0].r(a) * .92, b1 = sp.L - is.r(a + Math.PI) * .92;
+        const is = isles[sp.k];
+        const b0 = coastW(0, sp.ux, sp.uy) * .92, b1 = sp.L - coastW(sp.k, -sp.ux, -sp.uy) * .92;
         const x0 = cx + sp.ux * b0, y0 = cy + sp.uy * b0, x1 = cx + sp.ux * b1, y1 = cy + sp.uy * b1;
         const nx = -sp.uy * 13, ny = sp.ux * 13;
         const line = `M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}`;
@@ -647,10 +730,14 @@
           <path class="br-edge" d="${line}"/><path class="br-deck" d="${line}"/><path class="br-planks" d="${line}"/>
           <path class="br-rail" d="M${f(x0 + nx)} ${f(y0 + ny)}L${f(x1 + nx)} ${f(y1 + ny)}M${f(x0 - nx)} ${f(y0 - ny)}L${f(x1 - nx)} ${f(y1 - ny)}"/>${posts}</g>`;
       }).join("");
-      const trails = spokes.slice(1).map((sp) => {
-        const a = sp.a, b0 = isles[0].r(a), b1 = sp.L - isles[sp.k].r(a + Math.PI);
-        return `M${cx} ${cy}L${f(cx + sp.ux * b0)} ${f(cy + sp.uy * b0)}M${f(cx + sp.ux * b1)} ${f(cy + sp.uy * b1)}L${stops[sp.k][0]} ${stops[sp.k][1]}`;
-      }).join("");
+      const trailIn = (i) => {
+        const is = isles[i], dirs = i === 0 ? spokes.slice(1).map((sp) => [sp.ux, sp.uy]) : [[-spokes[i].ux, -spokes[i].uy]];
+        const d = dirs.map(([ux, uy]) => {
+          const v = toLocalDir(i, ux, uy), a = Math.atan2(v[1], v[0]), r = is.r(a);
+          return `M${f(is.x)} ${f(is.y)}L${f(is.x + Math.cos(a) * r)} ${f(is.y + Math.sin(a) * r)}`;
+        }).join("");
+        return `<path class="trail-edge" d="${d}"/><path class="trail" d="${d}"/>`;
+      };
 
       // Islands: shallow water, beach and biome ground, plus scenery.
       const poly = (is, k) => {
@@ -682,12 +769,13 @@
         return `<g class="bm-${b.id}"><path class="shallow" d="${poly(is, 1.14)}"/><path class="beach" d="${poly(is, 1)}"/>` +
           `<path class="g" d="${poly(is, .86)}"/><path class="hill" d="${poly(hill, 1)}"/><path class="hill rise" d="${poly(rise, 1)}"/>` +
           `<path class="tuft" d="${tufts}"/></g>`;
-      }).join("") + smalls.map((o) => {
+      });
+      const smallIsles = smalls.map((o) => {
         const is = { x: o.x, y: o.y, r: o.rf, R: o.r };
         const top = o.r > 11 && rnd() < .7
           ? `<circle class="td" cx="${f(o.x - 1)}" cy="${f(o.y - 2)}" r="${f(o.r * .32)}"/><circle class="tr" cx="${f(o.x - 2)}" cy="${f(o.y - 3)}" r="${f(o.r * .18)}"/>`
           : `<path class="rk" d="M${f(o.x - 4)} ${f(o.y + 2)}l2-5 4-1 3 4z"/>`;
-        return `<g class="bm-${o.b} small-isle"><path class="shallow" d="${poly(is, 1.35)}"/><path class="beach" d="${poly(is, 1)}"/>` +
+        return `<g class="bm-${o.b} small-isle" transform="${tfAt(o.x, o.y)}"><path class="shallow" d="${poly(is, 1.35)}"/><path class="beach" d="${poly(is, 1)}"/>` +
           (o.r > 9 ? `<path class="g" d="${poly(is, .7)}"/>` : "") + `${top}</g>`;
       }).join("");
 
@@ -726,7 +814,7 @@
           const x = is.x + Math.cos(a) * r, y = is.y + Math.sin(a) * r;
           if (!free(x, y, 36)) continue;
           placed.push([x, y, 36]);
-          items.push([y, b.id === "space"
+          items.push([y, i, b.id === "space"
             ? `<g class="bm-space"><ellipse class="pad" cx="${f(x)}" cy="${f(y)}" rx="34" ry="19"/><ellipse class="pad-ring" cx="${f(x)}" cy="${f(y)}" rx="24" ry="13"/>` +
               `<path class="pad-h" d="M${f(x - 6)} ${f(y - 6)}v12M${f(x + 6)} ${f(y - 6)}v12M${f(x - 6)} ${f(y)}h12"/></g>`
             : `<g class="bm-${b.id}"><ellipse class="we" cx="${f(x)}" cy="${f(y)}" rx="34" ry="19"/><ellipse class="wt" cx="${f(x)}" cy="${f(y)}" rx="29" ry="15"/>` +
@@ -739,26 +827,46 @@
           const x = is.x + Math.cos(a) * r, y = is.y + Math.sin(a) * r;
           if (!free(x, y, 10)) continue;
           placed.push([x, y, 10]); made++;
-          items.push([y, `<g class="dc bm-${b.id}">${DECOR[b.kinds[Math.floor(rnd() * b.kinds.length)]](f(x), f(y))}</g>`]);
+          items.push([y, i, `<g class="dc bm-${b.id}">${DECOR[b.kinds[Math.floor(rnd() * b.kinds.length)]](f(x), f(y))}</g>`]);
         }
       });
-      stops.forEach(([x, y], i) => items.push([y, `<g class="lm bm-${biomeOf(i).id} ${locked(i) ? "locked" : ""}">${(isLaunch(i) ? LANDMARKS[4] : LANDMARKS[i % LANDMARKS.length])(x, y - 6)}</g>`]));
+      stops.forEach(([x, y], i) => items.push([y, i, `<g class="lm bm-${biomeOf(i).id} ${locked(i) ? "locked" : ""}">${(isLaunch(i) ? LANDMARKS[4] : LANDMARKS[i % LANDMARKS.length])(x, y - 6)}</g>`]));
       items.sort((a, b) => a[0] - b[0]);
 
       const glows = stops.map(([x, y], i) => locked(i) ? "" :
         `<circle class="glow" cx="${x}" cy="${y - 30}" r="90" fill="url(#lamp)"/>`).join("");
       const fog = stops.map(([x, y], i) => !locked(i) || isLaunch(i) ? "" :
         [[-26, -40, 20], [0, -56, 24], [24, -38, 20], [-8, -22, 18], [16, -18, 16]]
-          .map(([dx, dy, r]) => `<circle class="fog" cx="${x + dx}" cy="${y + dy}" r="${r}"/>`).join("")).join("");
+          .map(([dx, dy, r]) => `<circle class="fog" cx="${x + dx}" cy="${y + dy}" r="${r}"/>`).join(""));
+      // Each island with its paths, scenery and landmark, drawn in its own perspective
+      // (further islands first, so nearer ones overlap them).
+      const islandGroups = isles.map((_, i) => i).sort((a, b) => isles[a].y - isles[b].y).map((i) =>
+        `<g class="isle" transform="${tfAt(isles[i].x, isles[i].y, PZ[i])}">${islands[i]}${trailIn(i)}` +
+        `${items.filter((it) => it[1] === i).map((it) => it[2]).join("")}${fog[i]}</g>`).join("");
 
       svg.innerHTML = `
-        <defs><radialGradient id="lamp"><stop offset="0" stop-color="#ffd86b" stop-opacity=".5"/><stop offset="1" stop-color="#ffd86b" stop-opacity="0"/></radialGradient></defs>
-        <rect class="sea" width="${W}" height="${H}"/>
+        <defs><linearGradient id="nightsky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${f(e0 + sag)}"><stop offset="0" stop-color="#050818"/><stop offset=".75" stop-color="#121c52"/><stop offset="1" stop-color="#26407e"/></linearGradient>
+          <radialGradient id="limb" gradientUnits="userSpaceOnUse" cx="${f(planet.x)}" cy="${f(planet.y)}" r="${f(planet.r)}"><stop offset=".86" stop-color="#0a1432" stop-opacity="0"/><stop offset="1" stop-color="#0a1432" stop-opacity=".3"/></radialGradient>
+          <radialGradient id="lamp"><stop offset="0" stop-color="#ffd86b" stop-opacity=".5"/><stop offset="1" stop-color="#ffd86b" stop-opacity="0"/></radialGradient></defs>
+        <g class="skyband">
+          <rect width="${W}" height="${H}" fill="url(#nightsky)"/>
+          <g class="far-stars">${(() => {
+            // Far stars drift with the Dipper but slower (they're further away); two copies wrap around.
+            const stars = Array.from({ length: Math.round(W * (e0 + sag) / 2200) }, () =>
+              `<rect class="${rnd() < .25 ? "tw" : ""}" x="${f(rnd() * W)}" y="${f(rnd() * (e0 + sag))}" width="${rnd() < .12 ? 3 : 2}" height="${rnd() < .12 ? 3 : 2}" fill="#fff" opacity="${f(.3 + rnd() * .6)}" style="animation-delay:${f(rnd() * 3)}s"/>`).join("");
+            return `<g>${stars}</g><g transform="translate(${-W} 0)">${stars}</g>` + (reduce.matches ? "" :
+              `<animateTransform attributeName="transform" type="translate" from="0 0" to="${W} 0" dur="${Math.round(W / .8)}s" repeatCount="indefinite"/>`);
+          })()}</g>
+          <circle class="atmo outer" cx="${f(planet.x)}" cy="${f(planet.y)}" r="${f(planet.r + 22)}"/>
+          <circle class="atmo" cx="${f(planet.x)}" cy="${f(planet.y)}" r="${f(planet.r + 10)}"/>
+        </g>
+        <circle class="sea" cx="${f(planet.x)}" cy="${f(planet.y)}" r="${f(planet.r)}"/>
         <path class="wave" d="${waves}"/>
         ${reduce.matches ? "" : boats}
-        ${islands}
+        ${smallIsles}
         ${islets.map((o) => {
-          const par = isles[o.p], from = par.r(o.a) * .9, to = Math.hypot(o.x - par.x, o.y - par.y) - o.r * .85;
+          const ps = persp(o.x, o.y);
+          const par = isles[o.p], from = coastW(o.p, Math.cos(o.a), Math.sin(o.a)) * .9, to = Math.hypot(o.x - par.x, o.y - par.y) - o.r * .85 * ps.s;
           let stones = "";
           for (let d = from; d < to; d += 13) {
             stones += `<ellipse class="stone" cx="${f(par.x + Math.cos(o.a) * d)}" cy="${f(par.y + Math.sin(o.a) * d)}" rx="5" ry="3.5"/>`;
@@ -766,17 +874,15 @@
           const top = o.project
             ? `<path class="tent" d="M${f(o.x - 11)} ${f(o.y + 2)}L${f(o.x)} ${f(o.y - 16)}L${f(o.x + 11)} ${f(o.y + 2)}Z"/>`
             : `<rect class="post" x="${f(o.x - 1.5)}" y="${f(o.y - 18)}" width="3" height="18"/><rect class="sign" x="${f(o.x - 10)}" y="${f(o.y - 20)}" width="20" height="10"/>`;
-          return `<g class="islet bm-meadow">${stones}<circle class="shallow" cx="${f(o.x)}" cy="${f(o.y)}" r="${f(o.r * 1.25)}"/>` +
-            `<circle class="beach" cx="${f(o.x)}" cy="${f(o.y)}" r="${f(o.r)}"/><circle class="g" cx="${f(o.x)}" cy="${f(o.y)}" r="${f(o.r * .74)}"/>${top}</g>`;
+          return `<g class="islet bm-meadow">${stones}<g transform="${tfAt(o.x, o.y, ps)}"><circle class="shallow" cx="${f(o.x)}" cy="${f(o.y)}" r="${f(o.r * 1.25)}"/>` +
+            `<circle class="beach" cx="${f(o.x)}" cy="${f(o.y)}" r="${f(o.r)}"/><circle class="g" cx="${f(o.x)}" cy="${f(o.y)}" r="${f(o.r * .74)}"/>${top}</g></g>`;
         }).join("")}
         ${bridges}
-        <path class="trail-edge" d="${trails}"/><path class="trail" d="${trails}"/>
-        ${items.map((it) => it[1]).join("")}
-        ${fog}
+        ${islandGroups}
+        <circle class="limb" cx="${f(planet.x)}" cy="${f(planet.y)}" r="${f(planet.r)}" fill="url(#limb)"/>
         <rect class="night" width="${W}" height="${H}"/>
         ${glows}`;
 
-      hero.style.width = "36px";
       locsEl.innerHTML = arts.map((a, i) => {
         const st = STATUS[a.status] ? a.status : "upcoming";
         const [dx, dy] = LBL[sides[i]];
@@ -790,6 +896,23 @@
         return url ? `<a class="islet-tag" style="${style}" href="${esc(url)}" target="_blank" rel="noopener">${esc(p.title)}</a>`
           : `<span class="islet-tag" style="${style}">${p ? esc(p.title) : "Future project"}</span>`;
       }).join("");
+
+      mini.style.cssText = `left:${f(dip.x - dip.w / 2)}px;top:${f(dip.y - dip.w / 4)}px;width:${f(dip.w)}px`;
+      // The clouds float in the same strip of sky, in front of the Dipper's stars.
+      map.querySelector(".sky-fx").style.height = f(dip.y + dip.w / 4 + 30) + "px";
+      // Drift to the right with the clouds, but about a tenth as fast, fading in at the
+      // left edge and out at the right, then around again. It starts where it was laid out.
+      driftAnims.forEach((a) => a.cancel());
+      driftAnims = [];
+      if (!reduce.matches) {
+        const left = dip.x - dip.w / 2, span = W + dip.w, ms = Math.max(1000, Math.round(span / 2.2 * 1000)), at = (left + dip.w) / span * ms;
+        const opts = { duration: ms, iterations: Infinity, easing: "linear" };
+        driftAnims = [
+          mini.animate([{ translate: `${-(left + dip.w)}px 0` }, { translate: `${W - left}px 0` }], opts),
+          mini.querySelector(".dfade").animate([{ opacity: 0 }, { opacity: 1, offset: .05 }, { opacity: 1, offset: .95 }, { opacity: 0 }], opts)
+        ];
+        driftAnims.forEach((a) => { a.currentTime = at; });
+      }
 
       pos = target = stopPos(active);
       fit(true);
@@ -835,6 +958,7 @@
       const [x, y] = pointAt(pos);
       hero.style.left = x + "px";
       hero.style.top = y + "px";
+      hero.style.width = 36 * persp(x, y).s + "px";
     }
     // Highlight the landmark the traveler is standing at.
     function setHere(i) {
@@ -901,20 +1025,117 @@
         <g clip-path="url(#moon-clip)">${seas}${pits}${craters}<circle cx="${C}" cy="${C}" r="${R}" fill="url(#moon-shade)"/></g>
         <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#2b2a33" stroke-width="4"/></svg>`;
     }
+    // A random field of stars (some twinkle) for the night skies.
+    function starField(seed) {
+      let out = "";
+      const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      for (let k = 0; k < 420; k++) {
+        const big = r() < .08, size = big ? 2.6 + r() * 1.6 : .8 + r() * 1.4;
+        const tw = r() < .18 ? ` class="tw" style="animation-delay:${(r() * 4).toFixed(2)}s;animation-duration:${(2 + r() * 3).toFixed(2)}s"` : "";
+        const hue = r() < .15 ? "#cfe0ff" : r() < .1 ? "#ffe9c4" : "#ffffff";
+        out += `<circle cx="${(r() * 1920).toFixed(1)}" cy="${(r() * 1200).toFixed(1)}" r="${size.toFixed(2)}" fill="${hue}" opacity="${(.45 + r() * .55).toFixed(2)}"${tw}/>`;
+      }
+      return `<svg viewBox="0 0 1920 1200" preserveAspectRatio="xMidYMid slice">${out}</svg>`;
+    }
+
+    // ---- The Big Dipper: contact links as stars ----
+    // The four stars of the bowl are links; the handle (with little Alcor) is decoration.
+    const DIPPER = [
+      { name: "Alkaid", x: 8, y: 30 }, { name: "Mizar", x: 40, y: 14 }, { name: "Alioth", x: 66, y: 22 },
+      { name: "Megrez", x: 92, y: 34, link: "Email", url: PROFILE.email && "mailto:" + PROFILE.email, side: "up" },
+      { name: "Dubhe", x: 150, y: 20, link: "GitHub", url: PROFILE.github, side: "up" },
+      { name: "Merak", x: 160, y: 72, link: "LinkedIn", url: PROFILE.linkedin, side: "down" },
+      { name: "Phecda", x: 104, y: 80, link: "Handshake", url: PROFILE.handshake, side: "down" }
+    ];
+    const SPARK = '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M0-9.5L1.8-1.8L9.5 0L1.8 1.8L0 9.5L-1.8 1.8L-9.5 0L-1.8-1.8Z" fill="#fff4c2"/><circle r="2.4" fill="#fff"/></svg>';
+    function dipperHTML(big) {
+      const order = ["Alkaid", "Mizar", "Alioth", "Megrez", "Phecda", "Merak", "Dubhe", "Megrez"];
+      const pts = order.map((n) => DIPPER.find((s) => s.name === n)).map((s) => `${s.x},${s.y}`).join(" ");
+      const lines = `<svg class="dipper-lines" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true">
+        <polyline points="${pts}" pathLength="1"/></svg>`;
+      const stars = DIPPER.map((s, i) => {
+        const pos = `left:${s.x / 2}%;top:${s.y}%;--d:${(-i * .83).toFixed(2)}s;--t:${(2.3 + (i % 4) * .55).toFixed(2)}s`;
+        if (!big || !s.link) return `<span class="dstar ${s.link ? "bowl" : ""}" style="${pos}">${SPARK}</span>`;
+        const label = `<span class="dlabel ${s.side}">${s.link}</span>`;
+        return s.url
+          ? `<a class="dstar link" style="${pos}" href="${esc(s.url)}" ${s.url.startsWith("mailto:") ? "" : 'target="_blank" rel="noopener"'} aria-label="${s.link}">${SPARK}${label}</a>`
+          : `<span class="dstar link off" style="${pos}">${SPARK}${label}</span>`;
+      }).join("") + `<span class="dstar alcor" style="left:${42 / 2}%;top:8%;--d:-1.1s;--t:2.1s">${SPARK}</span>`;
+      return lines + stars;
+    }
+
+    // The sky above the islands, where Contact pans to.
+    const skyEl = document.createElement("div");
+    skyEl.className = "sky-scene";
+    skyEl.setAttribute("role", "dialog");
+    skyEl.setAttribute("aria-label", "Contact");
+    skyEl.innerHTML = `<div class="ss-sky" aria-hidden="true">${starField(4242)}</div>
+      <div class="sky-sea" aria-hidden="true"></div>
+      <div class="sky-head"><h2>Contact</h2><p>Follow the Big Dipper: click a star in the bowl to reach me.</p></div>
+      <div class="dipper big">${dipperHTML(true)}</div>
+      <div class="sky-foot"><button type="button" class="btn small sky-back">&#9660; Back to the islands</button></div>`;
+    document.body.appendChild(skyEl);
+    // A faint copy always hangs over the map; clicking it pans up too.
+    const mini = document.createElement("button");
+    mini.type = "button";
+    mini.className = "dipper mini";
+    mini.setAttribute("aria-label", "Contact: pan up to the Big Dipper");
+    mini.innerHTML = `<span class="dfade">${dipperHTML(false)}</span>`;
+    let driftAnims = [];
+    map.appendChild(mini);
+
+    let skyOn = false, skyRun = 0;
+    const PAN = { duration: 1400, easing: "cubic-bezier(.65, 0, .35, 1)" };
+    async function panToSky() {
+      if (skyOn) return;
+      skyOn = true;
+      const run = ++skyRun;
+      if (inSpace) endSpace();
+      if (scrollY > 0) { scrollTo({ top: 0, behavior: reduce.matches ? "auto" : "smooth" }); await wait(reduce.matches ? 0 : 450); }
+      skyEl.classList.add("on");
+      await Promise.all([
+        play(skyEl, [{ transform: "translateY(-100%)" }, { transform: "translateY(0)" }], PAN),
+        play(map, [{ transform: "translateY(0)" }, { transform: "translateY(30%)" }], PAN)
+      ]);
+      if (run !== skyRun) return;         // left again before it finished
+      skyEl.classList.add("lit");
+      skyEl.querySelector(".dstar.link[href]")?.focus({ preventScroll: true });
+    }
+    async function panBack() {
+      if (!skyOn) return;
+      const run = ++skyRun;
+      skyEl.classList.remove("lit");
+      skyEl.getAnimations().forEach((a) => a.cancel());
+      map.getAnimations().forEach((a) => a.cancel());
+      await Promise.all([
+        play(skyEl, [{ transform: "translateY(0)" }, { transform: "translateY(-100%)" }], PAN),
+        play(map, [{ transform: "translateY(30%)" }, { transform: "translateY(0)" }], PAN)
+      ]);
+      if (run !== skyRun) return;
+      skyEl.classList.remove("on");
+      skyEl.getAnimations().forEach((a) => a.cancel());
+      map.getAnimations().forEach((a) => a.cancel());
+      skyOn = false;
+      document.querySelector(".contact-cta")?.focus({ preventScroll: true });
+    }
+    document.querySelector(".contact-cta")?.addEventListener("click", (e) => { e.preventDefault(); panToSky(); });
+    mini.addEventListener("click", panToSky);
+    // Map, Quests and the logo first bring you back down from the Contact sky (or home
+    // from the moon), then go where they point.
+    document.querySelectorAll('.nav a[href^="#"]:not(.contact-cta)').forEach((link) => link.addEventListener("click", async (e) => {
+      if (!skyOn && !inSpace) return;
+      e.preventDefault();
+      if (skyOn) await panBack();
+      if (inSpace) { closeCard(); endSpace(); }
+      document.querySelector(link.getAttribute("href"))?.scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth" });
+    }));
+    skyEl.querySelector(".sky-back").addEventListener("click", panBack);
+    addEventListener("keydown", (e) => { if (e.key === "Escape" && skyOn && !document.querySelector(".lightbox[open]")) panBack(); });
+
     const scene = document.createElement("div");
     scene.className = "space-scene";
     scene.innerHTML = `
-      <div class="ss-sky" aria-hidden="true">${(() => {
-        let seed = 2026, out = "";
-        const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-        for (let k = 0; k < 420; k++) {
-          const big = r() < .08, size = big ? 2.6 + r() * 1.6 : .8 + r() * 1.4;
-          const tw = r() < .18 ? ` class="tw" style="animation-delay:${(r() * 4).toFixed(2)}s;animation-duration:${(2 + r() * 3).toFixed(2)}s"` : "";
-          const hue = r() < .15 ? "#cfe0ff" : r() < .1 ? "#ffe9c4" : "#ffffff";
-          out += `<circle cx="${(r() * 1920).toFixed(1)}" cy="${(r() * 1200).toFixed(1)}" r="${size.toFixed(2)}" fill="${hue}" opacity="${(.45 + r() * .55).toFixed(2)}"${tw}/>`;
-        }
-        return `<svg viewBox="0 0 1920 1200" preserveAspectRatio="xMidYMid slice">${out}</svg>`;
-      })()}</div>
+      <div class="ss-sky" aria-hidden="true">${starField(2026)}</div>
       <div class="ss-moon" aria-hidden="true">
         ${moonSVG()}
         <div class="ss-crew"><svg viewBox="-20 -40 60 44" width="90" height="66">${ASTRO(0, 0)}<path class="pole" d="M18 0V-34"/><rect class="flag" x="18" y="-34" width="18" height="11"/></svg></div>
@@ -930,7 +1151,8 @@
       inSpace = true;
       const [x, y] = stops[i];
       const btn = locsEl.children[i], r0 = btn.getBoundingClientRect();
-      if (r0.top < 0 || r0.bottom > innerHeight) btn.scrollIntoView({ block: "center" });
+      launchScroll = scrollY;                // remembered so the return trip puts the page back
+      if (r0.top < 0 || r0.bottom > innerHeight) btn.scrollIntoView({ block: "nearest" });
       // The traveler boards and the rocket leaves the pad.
       hero.style.visibility = "hidden";
       svg.classList.add("launched");
@@ -956,7 +1178,8 @@
       const below = `translate(-50%, -50%) translateY(${sky.sh}px)`;
       moon.animate([{ transform: below }], { duration: 1, fill: "forwards" });
       await Promise.all([
-        earth.ok ? Promise.resolve() : play(scene, [{ opacity: 0 }, { opacity: 1 }], { duration: 500 }),
+        // The globe starts moving while it fades in over the identical map, so there is no still frame to notice.
+        play(scene, [{ opacity: 0 }, { opacity: 1 }], { duration: earth.ok ? 700 : 500, easing: "ease-in-out" }),
         zoomOut(),
         wait(reduce.matches ? 0 : 1200).then(() => play(moon, [{ transform: below }, { transform: "translate(-50%, -50%)" }], { duration: 1200, easing: "ease-out" }))
       ]);
@@ -985,25 +1208,48 @@
     // Storybook look to match the map: crisp, gently shaded, lit from the moon's side,
     // with the same ink outline as the islands and a thin flat atmosphere ring.
     const FRAG = `precision highp float;
-      uniform vec2 uRes;uniform float uDpr;uniform vec2 uC;uniform float uF;uniform float uD;uniform float uRho;
-      uniform vec2 uMap;uniform vec2 uOff;uniform float uCurve;uniform vec3 uSea;uniform sampler2D uTex;uniform float uPxR;
+      uniform vec2 uRes;uniform float uDpr;uniform vec2 uC;uniform float uF;uniform float uD;uniform float uPxR;
+      uniform vec2 uMap;uniform vec2 uDiskC;uniform float uDiskR;uniform float uRot;uniform float uCurve;uniform vec3 uSea;uniform sampler2D uTex;
+      uniform float uLand;
+      // Value noise for the continents on the rest of the planet.
+      float hash(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+      float noise(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+        return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
+                   mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+      float fbm(vec3 p){float v=0.,a=.5;for(int k=0;k<5;k++){v+=a*noise(p);p*=2.03;a*=.5;}return v;}
       void main(){
         vec2 q=vec2(gl_FragCoord.x,uRes.y*uDpr-gl_FragCoord.y)/uDpr;
         vec3 o=vec3(0.,0.,uD);vec3 r=normalize(vec3(q-uC,-uF));
         float b=dot(o,r);float disc=b*b-(dot(o,o)-1.);
         if(disc<0.){
           float px=(sqrt(max(dot(o,o)-b*b,0.))-1.)*uPxR;
-          if(px<2.5)gl_FragColor=vec4(.17,.16,.2,uCurve);
-          else if(px<9.)gl_FragColor=vec4(.56,.84,.97,.32*uCurve*(1.-smoothstep(6.,9.,px)));
+          if(px<2.5)gl_FragColor=vec4(.17,.16,.2,1.);
+          else if(px<16.)gl_FragColor=vec4(.47,.78,.96,.42*(1.-smoothstep(6.,16.,px)));
           else gl_FragColor=vec4(0.);
           return;}
         vec3 p=o+(-b-sqrt(disc))*r;
-        float lon=atan(p.x,p.z);float lat=asin(clamp(p.y,-1.,1.));
-        vec2 uv=(uMap*.5+(vec2(lon,lat)+uOff)*uRho)/uMap;
+        float c=cos(uRot),s=sin(uRot);
+        vec3 pr=vec3(p.x*c-p.z*s,p.y,p.x*s+p.z*c);
         vec3 col=uSea;
-        if(uv.x>=0.&&uv.x<=1.&&uv.y>=0.&&uv.y<=1.)col=texture2D(uTex,uv).rgb;
+        if(pr.z>0.){
+          vec2 mp=uDiskC+pr.xy*uDiskR,uv=mp/uMap;
+          if(uv.x>=0.&&uv.x<=1.&&uv.y>=0.&&uv.y<=1.)col=texture2D(uTex,uv).rgb;
+
+        }
+        // Continents: beaches, grass, darker highlands, snowy poles and an inked coastline.
+        // The offset is chosen so open ocean falls where the island map sits (near the top of the globe).
+        float n=fbm(pr*2.2+vec3(14.85,7.38,13.71));
+        float land=smoothstep(.553,.562,n)*uLand;
+        vec3 lc=mix(vec3(.95,.87,.62),vec3(.47,.73,.34),smoothstep(.565,.585,n));
+        lc=mix(lc,vec3(.86,.75,.48),smoothstep(.56,.64,fbm(pr*1.4+vec3(9.,2.,5.)))*smoothstep(.6,.62,n)*.8);
+        lc=mix(lc,vec3(.34,.57,.28),smoothstep(.65,.7,n));
+        lc=mix(lc,vec3(.96,.97,1.),smoothstep(.8,.88,abs(pr.y)));
+        col=mix(col,lc,land);
+        float coast=smoothstep(.545,.552,n)*(1.-smoothstep(.553,.559,n));
+        col=mix(col,vec3(.2,.22,.26),coast*uLand*.75);
         float diff=dot(p,normalize(vec3(.55,-.45,.7)));
         col*=mix(1.,mix(.84,1.,smoothstep(-.05,.3,diff)),uCurve);
+        col*=1.-.3*smoothstep(.86,1.,length(p.xy))*(1.-uCurve);
         gl_FragColor=vec4(col,1.);
       }`;
     const earth = { gl: null, canvas: null, ok: false, tex: null, u: {}, sea: [0.36, 0.71, 0.89], st: null, raf: 0 };
@@ -1027,7 +1273,7 @@
         const loc = gl.getAttribLocation(prog, "a");
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        for (const n of ["uRes", "uDpr", "uC", "uF", "uD", "uRho", "uMap", "uOff", "uCurve", "uSea", "uTex", "uPxR"]) earth.u[n] = gl.getUniformLocation(prog, n);
+        for (const n of ["uRes", "uDpr", "uC", "uF", "uD", "uPxR", "uMap", "uDiskC", "uDiskR", "uRot", "uCurve", "uSea", "uTex", "uLand"]) earth.u[n] = gl.getUniformLocation(prog, n);
         earth.tex = gl.createTexture();
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -1045,16 +1291,21 @@
         const cs = getComputedStyle(el);
         dst[k].setAttribute("style", props.map((p) => `${p}:${cs.getPropertyValue(p).replace(/url\("?[^#"]*#/, 'url("#')}`).join(";"));
       });
+      clone.querySelectorAll(".skyband, .limb, .boat, .fish-jump").forEach((n) => n.remove());
+      const sea = clone.querySelector(".sea");
+      if (sea) { sea.setAttribute("r", 1e5); sea.setAttribute("style", sea.getAttribute("style") + ";stroke:none"); }
       clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
       const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], { type: "image/svg+xml" }));
       try {
         const img = new Image();
         img.src = url;
         await img.decode();
-        const k = Math.min(2, devicePixelRatio || 1, 4096 / Math.max(W, H));
+        const k = Math.min(2, 4096 / Math.max(W, H));   // always 2x so the globe's first frame is as crisp as the SVG map
         const cv = document.createElement("canvas");
         cv.width = Math.round(W * k); cv.height = Math.round(H * k);
         const ctx = cv.getContext("2d");
+        ctx.fillStyle = getComputedStyle(svg.querySelector(".sea")).fill;
+        ctx.fillRect(0, 0, cv.width, cv.height);
         ctx.drawImage(img, 0, 0, cv.width, cv.height);
         try { const px = ctx.getImageData(2, 2, 1, 1).data; earth.sea = [px[0] / 255, px[1] / 255, px[2] / 255]; } catch (e) {}
         return cv;
@@ -1078,7 +1329,6 @@
     function drawEarth() {
       const gl = earth.gl, cv = earth.canvas, st = earth.st;
       if (!earth.ok || !st) return;
-      // The further out the camera, the chunkier the pixels, so the globe reads as pixel art.
       const dpr = Math.min(2, devicePixelRatio || 1), w = innerWidth, h = innerHeight - navH();
       if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
         cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
@@ -1088,25 +1338,22 @@
       gl.clear(gl.COLOR_BUFFER_BIT);
       const u = earth.u;
       gl.uniform2f(u.uRes, w, h); gl.uniform1f(u.uDpr, dpr);
-      gl.uniform2f(u.uC, st.cx, st.cy); gl.uniform1f(u.uF, st.f); gl.uniform1f(u.uD, st.d);
-      gl.uniform1f(u.uRho, st.rho); gl.uniform2f(u.uMap, W, H);
-      gl.uniform2f(u.uOff, st.lon + st.rot, st.lat); gl.uniform1f(u.uCurve, st.curve);
+      gl.uniform2f(u.uC, st.cx, st.cy); gl.uniform1f(u.uF, st.R * CAM_F); gl.uniform1f(u.uD, CAM_D); gl.uniform1f(u.uPxR, st.R);
+      gl.uniform2f(u.uMap, W, H); gl.uniform2f(u.uDiskC, planet.x, planet.y); gl.uniform1f(u.uDiskR, planet.r);
+      gl.uniform1f(u.uRot, st.rot); gl.uniform1f(u.uCurve, st.curve);
+      gl.uniform1f(u.uLand, Math.min(1, Math.max(0, (st.curve - .15) / .5)));   // continents fade in as we pull back
       gl.uniform3f(u.uSea, ...earth.sea); gl.uniform1i(u.uTex, 0);
-      gl.uniform1f(u.uPxR, st.f / Math.sqrt(Math.max(st.d * st.d - 1, 1e-4)));   // screen px per globe radius
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
     // Camera states: "near" shows the map exactly as it was on screen; "far" is the globe.
+    // The camera stays far away with a long lens, so the globe keeps its proportions the
+    // whole way: zooming out only changes how big it is and where it sits (R is its
+    // radius on screen). The islands are painted on its face exactly as the map shows them.
+    const CAM_D = 100, CAM_F = Math.sqrt(CAM_D * CAM_D - 1);
     function earthStates() {
       const r = map.getBoundingClientRect(), top = navH();
-      const x0 = Math.max(r.left, 0), x1 = Math.min(r.right, innerWidth), y0 = Math.max(r.top, top), y1 = Math.min(r.bottom, innerHeight);
-      const sx = (x0 + x1) / 2, sy = (y0 + y1) / 2 - top;          // centre of the visible map, in scene px
-      const qx = (sx - r.left) / zoom, qy = (sy + top - r.top - shiftY) / zoom;   // the same point in map px
-      const f = 1.2 * Math.max(innerWidth, innerHeight - top);
-      const rho = 1.1 * Math.max(W, H);                             // map px per radian of the globe
-      const near = { cx: sx, cy: sy, f, rho, d: 1 + f / (zoom * rho), lon: (qx - W / 2) / rho, lat: (qy - H / 2) / rho, rot: 0, curve: 0 };
-      // Far away the islands are drawn larger on the globe (fewer map px per radian).
-      const far = { cx: sky.gx, cy: sky.gy, f, rho: .55 * Math.max(W, H), d: Math.sqrt((2 * f / sky.gd) ** 2 + 1), lon: -.15, lat: .55, rot: 0, curve: 1 };
-      // (lat .55 turns the islands up into the half of the globe that is on screen)
+      const near = { cx: r.left + planet.x * zoom, cy: r.top + shiftY + planet.y * zoom - top, R: planet.r * zoom, rot: 0, curve: 0 };
+      const far = { cx: sky.gx, cy: sky.gy, R: sky.gd / 2, rot: 0, curve: 1 };
       return { near, far };
     }
     const ease = (t) => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
@@ -1125,11 +1372,9 @@
     }
     // Interpolate between camera states; distance moves in log space so the zoom feels even.
     const mixState = (a, b, e) => ({
-      cx: a.cx + (b.cx - a.cx) * e, cy: a.cy + (b.cy - a.cy) * e, f: a.f,
-      rho: Math.exp(Math.log(a.rho) + (Math.log(b.rho) - Math.log(a.rho)) * e),
-      d: 1 + Math.exp(Math.log(a.d - 1) + (Math.log(b.d - 1) - Math.log(a.d - 1)) * e),
-      lon: a.lon + (b.lon - a.lon) * e, lat: a.lat + (b.lat - a.lat) * e, rot: 0,
-      curve: a.curve + (b.curve - a.curve) * Math.min(1, e * 1.6)
+      cx: a.cx + (b.cx - a.cx) * e, cy: a.cy + (b.cy - a.cy) * e,
+      R: Math.exp(Math.log(a.R) + (Math.log(b.R) - Math.log(a.R)) * e), rot: 0,
+      curve: a.curve + (b.curve - a.curve) * e
     });
     let path = null;
     async function zoomOut() {
@@ -1138,8 +1383,7 @@
       earth.st = { ...path.near };
       scene.classList.add("globe");
       drawEarth();
-      await wait(reduce.matches ? 0 : 250);
-      await tween(2200, (e) => { earth.st = mixState(path.near, path.far, e); });
+      await tween(2400, (e) => { earth.st = mixState(path.near, path.far, e); });
       // Then the planet turns slowly while we're on the moon.
       const t0 = performance.now();
       const spinTick = (now) => {
@@ -1203,12 +1447,13 @@
     // Where the launch island is on the globe right now (or a spot on Earth without WebGL).
     function islePoint() {
       const i = stops.findIndex((_, k) => isLaunch(k)), st = earth.st;
-      if (!earth.ok || !st || i < 0) return [sky.gx + sky.gd * .08, sky.gy - sky.gd * .4];
-      const lon = (stops[i][0] - W / 2) / st.rho - (st.lon + st.rot), lat = (stops[i][1] - 6 - H / 2) / st.rho - st.lat;
-      const P = [Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon)];
-      if (P[2] < .15) return [sky.gx + sky.gd * .08, sky.gy - sky.gd * .4];   // turned away: use a spot facing us
-      const k = st.f / (st.d - P[2]);
-      return [st.cx + P[0] * k, st.cy + P[1] * k];
+      const away = [sky.gx + sky.gd * .08, sky.gy - sky.gd * .4];
+      if (!earth.ok || !st || i < 0) return away;
+      const u = (stops[i][0] - planet.x) / planet.r, v = (stops[i][1] - 6 - planet.y) / planet.r, w = Math.sqrt(Math.max(0, 1 - u * u - v * v));
+      const c = Math.cos(st.rot), sn = Math.sin(st.rot), px = u * c + w * sn, pz = -u * sn + w * c;
+      if (pz < .15) return away;                                  // turned away: use a spot facing us
+      const k = st.R * CAM_F / (CAM_D - pz);
+      return [st.cx + px * k, st.cy + v * k];
     }
     function placeShip(x, y, deg, scale, alpha) {
       ship.style.left = x - 26 + "px";
@@ -1269,14 +1514,16 @@
         zoomIn()
       ]);
       if (run !== launchRun) return;
-      if (!earth.ok) await play(scene, [{ opacity: 1 }, { opacity: 0 }], { duration: 400 });
+      await play(scene, [{ opacity: 1 }, { opacity: 0 }], { duration: earth.ok ? 350 : 400 });
       leaveEarthMode();
       scene.classList.remove("on");
       scene.getAnimations({ subtree: true }).forEach((a) => a.cancel());
       if (i >= 0 && !reduce.matches) {
         const [x, y] = stops[i];
         const btn = locsEl.children[i], r0 = btn.getBoundingClientRect();
-        if (r0.top < 0 || r0.bottom > innerHeight) btn.scrollIntoView({ block: "center" });
+        if (launchScroll !== null && Math.abs(scrollY - launchScroll) > 1) scrollTo({ top: launchScroll, behavior: "auto" });
+        else if (r0.top < 0 || r0.bottom > innerHeight) btn.scrollIntoView({ block: "nearest" });
+        launchScroll = null;
         const flyer = makeFlyer(x, y);
         const off = flyer.getBoundingClientRect().bottom + 80;
         await play(flyer, [{ transform: `translateY(${-off / zoom}px)` }, { transform: "translateY(0)" }],
@@ -1290,7 +1537,7 @@
       endSpace();
     }
     // Width of the screen the space scene should cover (not the docked card).
-    const shownWidth = () => narrow || innerWidth < 760 ? innerWidth : innerWidth - 16 - side.offsetWidth;
+    const shownWidth = () => innerWidth < 760 ? innerWidth : innerWidth - 16 - side.offsetWidth;
     function endSpace() {
       returning = false;
       launchAt = -1;
@@ -1469,7 +1716,7 @@
       cancelAnimationFrame(pending);
       pending = requestAnimationFrame(() => {
         if (inSpace) return;
-        if (map.clientWidth === lastW && (narrow || Math.abs(wantH() - H) < 60) && (innerWidth < 760) === narrow) return fit(true);
+        if (map.clientWidth === lastW && (narrow || Math.abs(wantH() - H) < 60) && isNarrow() === narrow) return fit(true);
         cancelAnimationFrame(raf); raf = 0; hero.classList.remove("walking");
         build();
         lastW = W;

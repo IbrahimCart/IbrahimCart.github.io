@@ -55,7 +55,7 @@ a:hover { text-decoration: underline; }
 
 /* Nav */
 .nav {
-  position: sticky; top: 0; z-index: 10;
+  position: sticky; top: 0; z-index: 30;   /* above the Contact sky (25) so its pan never covers the bar */
   background: color-mix(in srgb, var(--bg) 85%, transparent);
   backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
 }
@@ -220,7 +220,7 @@ button.btn { font: inherit; font-weight: 500; cursor: pointer; }
 .map-svg .stars { opacity: var(--stars); fill: #fff; }
 .map-svg .stars rect { animation: twinkle 3s steps(2) infinite; }
 @keyframes twinkle { 50% { opacity: .25; } }
-.sky-fx { position: absolute; left: 0; right: 0; top: 0; height: 100px; overflow: hidden; pointer-events: none; }
+.sky-fx { position: absolute; z-index: 3; left: 0; right: 0; top: 0; height: 100px; overflow: hidden; pointer-events: none; }
 
 /* Title banner and HUD float over the map */
 .banner, .hud {
@@ -328,9 +328,9 @@ button.btn { font: inherit; font-weight: 500; cursor: pointer; }
 /* Clouds over the sky band */
 .cloud { position: absolute; left: 0; fill: var(--cloud); opacity: .95; animation: drift linear infinite; }
 .cloud svg { display: block; width: 100%; height: auto; }
-.cloud.c1 { top: 10px; width: 120px; animation-duration: 70s; animation-delay: -20s; }
-.cloud.c2 { top: 46px; width: 80px; animation-duration: 95s; animation-delay: -60s; opacity: .8; }
-.cloud.c3 { top: 24px; width: 150px; animation-duration: 120s; animation-delay: -95s; opacity: .7; }
+.cloud.c1 { top: 6%; width: 120px; animation-duration: 70s; animation-delay: -20s; }
+.cloud.c2 { top: 52%; width: 80px; animation-duration: 95s; animation-delay: -60s; opacity: .8; }
+.cloud.c3 { top: 28%; width: 150px; animation-duration: 120s; animation-delay: -95s; opacity: .7; }
 @keyframes drift { from { transform: translateX(-220px); } to { transform: translateX(calc(100vw + 20px)); } }
 @media (prefers-reduced-motion: reduce) { .cloud, .map-svg .stars rect, .npc-box::after { animation: none !important; } }
 
@@ -597,3 +597,87 @@ a.islet-tag:hover { background: rgba(20, 20, 30, .8); text-decoration: none; }
 @keyframes gold-shine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
 @media (prefers-reduced-motion: reduce) { .nav nav a.contact-cta, .nav nav a.contact-cta::after { animation: none; } }
 @media (max-width: 600px) { .nav nav a.contact-cta { display: inline-block; font-size: 14px; } }
+
+/* ---- Contact: the Big Dipper ---- */
+.dipper { position: relative; aspect-ratio: 2 / 1; }
+.dipper-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.dipper-lines polyline { fill: none; stroke: rgba(255, 244, 194, .55); stroke-width: .5;
+  stroke-dasharray: 1; stroke-dashoffset: 0; stroke-linejoin: round; }
+.dstar { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; text-decoration: none; }
+.dstar svg { display: block; width: 18px; height: 18px; filter: drop-shadow(0 0 4px rgba(255, 233, 160, .9));
+  animation: star-pulse var(--t, 3s) ease-in-out var(--d, 0s) infinite; }
+.dstar.alcor svg { width: 8px; height: 8px; }
+@keyframes star-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.68); opacity: .5; } }
+
+/* Faint, always-on copy over the map (bottom-left of the ocean) */
+.dipper.mini { position: absolute; z-index: 3; padding: 0; border: 0; background: none;
+  cursor: pointer; opacity: .8; transition: opacity .3s; }
+.dipper.mini:hover, .dipper.mini:focus-visible { opacity: .95; }
+.dipper.mini:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; border-radius: 4px; }
+.dipper.mini .dipper-lines polyline { stroke: rgba(255, 255, 255, .7); stroke-width: 1.3; }
+.dipper.mini .dstar svg { width: 14px; height: 14px; filter: drop-shadow(0 0 3px #fff); }
+.dipper.mini .dstar.bowl svg { width: 17px; height: 17px; }
+.dipper.mini .dstar.alcor svg { width: 6px; height: 6px; }
+.dipper.mini:hover { opacity: 1; }
+
+/* The night sky the page pans up to */
+.sky-scene { position: fixed; z-index: 25; top: 63px; left: 0; right: 0; bottom: 0; overflow: hidden; display: none;
+  background: linear-gradient(#050818, #0d1336 55%, #1a2556); }
+.sky-scene.on { display: block; }
+.sky-scene .ss-sky { background: none; }
+.sky-sea { position: absolute; left: 0; right: 0; bottom: 0; height: 70px;
+  background: linear-gradient(#173a62, #0d2440); border-top: 3px solid #2b2a33; }
+.sky-head { position: absolute; top: 7%; left: 0; right: 0; text-align: center; color: #fff; }
+.sky-head h2 { margin: 0; font-size: clamp(28px, 4vw, 44px); text-shadow: 3px 3px 0 #000; }
+.sky-head h2::before { display: none; }
+.sky-head p { margin: 8px 16px 0; color: #c9d2f5; font-size: 16px; opacity: 0; transition: opacity .6s .6s; }
+.dipper.big { position: absolute; left: 50%; top: 52%; width: min(880px, 82vw); transform: translate(-50%, -50%); }
+.dipper.big .dipper-lines polyline { stroke-dashoffset: 1; transition: stroke-dashoffset 1.6s ease-out; }
+.dipper.big .dstar svg { width: 22px; height: 22px; }
+.dipper.big .dstar.link svg { width: clamp(34px, 4.5vw, 48px); height: clamp(34px, 4.5vw, 48px); filter: drop-shadow(0 0 10px rgba(255, 220, 120, .95)); }
+.dipper.big .dstar.alcor svg { width: 10px; height: 10px; }
+.dlabel { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 10px; border-radius: 4px;
+  font: 600 15px "Pixelify Sans", Inter, sans-serif; color: #1f1d24; background: #ffd86b; border: 2px solid #2b2a33;
+  box-shadow: 3px 3px 0 #000; opacity: 0; transition: opacity .4s 1s, transform .15s; }
+.dlabel.up { bottom: calc(100% + 8px); }
+.dlabel.down { top: calc(100% + 8px); }
+.sky-scene.lit .dlabel, .sky-scene.lit .sky-head p { opacity: 1; }
+.sky-scene.lit .dipper.big .dipper-lines polyline { stroke-dashoffset: 0; }
+a.dstar:hover .dlabel, a.dstar:focus-visible .dlabel { background: #fff3b8; transform: translateX(-50%) translateY(-2px); }
+a.dstar:hover svg, a.dstar:focus-visible svg { animation: none; transform: scale(1.18); }
+a.dstar:focus-visible { outline: none; }
+a.dstar:focus-visible .dlabel { outline: 3px solid #fff; outline-offset: 2px; }
+.dstar.off { opacity: .45; }
+.sky-foot { position: absolute; left: 24px; right: 24px; bottom: 88px; display: flex; justify-content: flex-start; }
+@media (prefers-reduced-motion: reduce) {
+  .dstar svg { animation: none; }
+  .dipper.big .dipper-lines polyline, .dlabel, .sky-head p { transition: none; }
+}
+@media (max-width: 600px) {
+  .dipper.big { width: 92vw; top: 50%; }
+  .dlabel { font-size: 13px; padding: 3px 7px; }
+  .sky-foot { justify-content: center; }
+}
+
+/* Night sky along the top of the map */
+.map-svg .sea { stroke: var(--ink); stroke-width: 3; }
+.map-svg .atmo { fill: rgba(120, 200, 245, .45); }
+.map-svg .atmo.outer { fill: rgba(120, 200, 245, .14); }
+.map-svg .skyband .tw { animation: twinkle 3.5s ease-in-out infinite; }
+.map.leaving .dipper.mini { opacity: 0; transition: opacity .6s; }
+@media (prefers-reduced-motion: reduce) { .map-svg .skyband .tw { animation: none; } }
+
+/* Wrapper that lets the drifting Dipper fade in and out at the edges */
+.dipper.mini .dfade { position: absolute; inset: 0; display: block; }
+
+/* Compact title banner so a strip of night sky shows beneath it */
+@media (min-width: 760px) {
+  .banner { padding: 10px 14px 12px; max-width: min(500px, calc(100% - 36px)); }
+  .banner h1 { font-size: clamp(17px, 1.55vw, 21px); margin: 6px 0 8px; }
+  .banner .badge { font-size: 12px; padding: 2px 9px; }
+  .banner .cta { gap: 8px; }
+  .banner .btn { padding: 4px 10px; font-size: 13px; }
+}
+
+/* Layering in the sky: stars of the Dipper, then clouds, then the title and HUD */
+.dipper.mini { z-index: 2; }
