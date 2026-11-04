@@ -24,15 +24,20 @@ button, input, textarea { font: inherit; }
 :focus-visible { outline: 3px solid #7fd6ac; outline-offset: 2px; }
 
 /* Page chrome */
-.demo-head { max-width: 880px; margin: 0 auto; padding: 20px 16px 4px; }
+/* One grid: the header and demo clock stack on the left, the phone sits beside them from the top of the page. */
+.demo-head { grid-area: head; }
 .demo-head .back { display: inline-block; margin-bottom: 8px; font-size: 14px; }
 .demo-head h1 { margin: 0 0 6px; font-size: 28px; }
 .demo-head h1 span { font-size: 15px; font-weight: 500; color: var(--page-muted); margin-left: 8px; }
 .demo-head p { margin: 0; color: var(--page-muted); font-size: 14px; max-width: 70ch; }
 
-.stage { max-width: 880px; margin: 0 auto; padding: 16px; display: flex; gap: 28px; align-items: flex-start; justify-content: center; flex-wrap: wrap; }
+.stage {
+  display: grid; grid-template-columns: minmax(260px, 360px) 384px; grid-template-rows: auto 1fr;
+  grid-template-areas: "head phone" "controls phone"; column-gap: 40px; row-gap: 18px;
+  justify-content: center; align-items: start; max-width: 900px; margin: 0 auto; padding: 20px 16px;
+}
 
-.controls { flex: 1 1 280px; max-width: 360px; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 14px; padding: 16px; }
+.controls { grid-area: controls; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 14px; padding: 16px; }
 .controls h2 { margin: 0 0 4px; font-size: 16px; }
 .clock { margin: 0; font-size: 22px; font-weight: 700; color: #fff; }
 .hint { margin: 6px 0 10px; font-size: 13px; color: var(--page-muted); }
@@ -57,7 +62,7 @@ button, input, textarea { font: inherit; }
 }
 .bezel { background: #000; border-radius: 52px; padding: 4px; }
 /* The phone keeps its shape at every width: JS sets zoom so it shrinks to fit instead of changing design. */
-.phone-wrap { width: min(100%, 384px); flex: none; }
+.phone-wrap { grid-area: phone; justify-self: center; align-self: start; width: min(100%, 384px); }
 .display { position: relative; aspect-ratio: 440 / 956; border-radius: 48px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
 .hw { position: absolute; width: 3px; border-radius: 2px; background: linear-gradient(90deg, #4a5468, #1d2431); }
 .hw.action { left: -2px; top: 128px; height: 30px; }
@@ -151,10 +156,13 @@ dialog pre { max-height: 50vh; overflow: auto; background: var(--card); border-r
 #confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 50; }
 .noscript { padding: 16px; text-align: center; }
 
+/* The layout stacks below this width (clock + phone no longer fit side by side): put the app first. */
+/* Too narrow to sit side by side: one column, header, then the phone, then the demo clock. */
+@media (max-width: 760px) {
+  .stage { grid-template-columns: minmax(0, 560px); grid-template-rows: auto; grid-template-areas: "head" "phone" "controls"; row-gap: 16px; }
+}
 @media (max-width: 520px) {
-  .stage { padding: 10px; gap: 16px; }
-  .phone-wrap { order: -1; } /* the app first, the demo clock below it */
-  .controls { max-width: none; }
+  .stage { padding: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .switch::after { transition: none; }

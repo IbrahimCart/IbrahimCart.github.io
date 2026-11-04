@@ -293,11 +293,20 @@
   });
 
   // Shrink the whole phone to fit narrow windows, so it still looks like an iPhone.
+  // Side by side with the demo clock, it also fits the window's height so the whole phone is always visible.
+  // Browser zoom changes the window size in layout terms, so it triggers a resize too.
   function fitPhone() {
-    const wrap = $("#phone-wrap");
-    $("#phone").style.zoom = Math.min(1, wrap.clientWidth / 384);
+    const wrap = $("#phone-wrap"), phone = $("#phone");
+    phone.style.zoom = 1;
+    let scale = Math.min(1, wrap.clientWidth / phone.offsetWidth);
+    if (window.matchMedia("(min-width: 761px)").matches) {
+      const top = wrap.getBoundingClientRect().top + window.scrollY;
+      scale = Math.min(scale, Math.max(0.5, (window.innerHeight - top - 16) / phone.offsetHeight));
+    }
+    phone.style.zoom = scale;
   }
   window.addEventListener("resize", fitPhone);
+  window.addEventListener("load", fitPhone);
   fitPhone();
 
   render();
