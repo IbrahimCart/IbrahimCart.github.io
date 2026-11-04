@@ -1,7 +1,7 @@
 /* Game theme: daytime map in light mode, night map in dark mode */
 :root {
   --bg: #f5f0e3;
-  --surface: #fffdf7;
+  --surface: #fffdf7; --paper: #fffdf7;
   --text: #1f1d24;
   --muted: #5d5a66;
   --border: #ddd4bf;
@@ -23,7 +23,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #10131a; --surface: #181c25; --text: #e8eaed; --muted: #a1a7b3;
+    --bg: #10131a; --surface: #181c25; --paper: #181c25; --text: #e8eaed; --muted: #a1a7b3;
     --border: #2b3240; --frame: #4a5468; --hard: 4px 4px 0 #000;
     --accent: #7a9bff; --on-accent: #0f1115; --accent-soft: #1b2440;
     --done: #5fd39a; --done-bg: #12291e; --prog: #f0b75a; --prog-bg: #2d2412;
@@ -33,7 +33,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --bg: #10131a; --surface: #181c25; --text: #e8eaed; --muted: #a1a7b3;
+  --bg: #10131a; --surface: #181c25; --paper: #181c25; --text: #e8eaed; --muted: #a1a7b3;
   --border: #2b3240; --frame: #4a5468; --hard: 4px 4px 0 #000;
   --accent: #7a9bff; --on-accent: #0f1115; --accent-soft: #1b2440;
   --done: #5fd39a; --done-bg: #12291e; --prog: #f0b75a; --prog-bg: #2d2412;
@@ -531,3 +531,69 @@ h2::before { content: ""; display: inline-block; width: 12px; height: 12px; marg
 .islet-tag { position: absolute; z-index: 2; transform: translateX(-50%); white-space: nowrap; padding: 1px 6px; border-radius: 3px;
   font: 500 11px "Pixelify Sans", Inter, sans-serif; color: #fff; background: rgba(20, 20, 30, .55); text-decoration: none; }
 a.islet-tag:hover { background: rgba(20, 20, 30, .8); text-decoration: none; }
+
+/* Cards dress up as their island: colours and a header pattern per biome */
+.side[data-biome] { --surface: color-mix(in srgb, var(--tint) 12%, var(--paper)); --bg: color-mix(in srgb, var(--tint) 20%, var(--paper));
+  --border: color-mix(in srgb, var(--tint) 45%, var(--paper)); background: var(--surface); }
+.side[data-biome] .side-head { background: var(--pattern), var(--tint); color: var(--tint-ink); border-bottom: 3px solid var(--frame); border-radius: 3px 3px 0 0; }
+.side[data-biome] .side-close { background: var(--paper); color: var(--text); }
+.side[data-biome] .card h3 { color: color-mix(in srgb, var(--tint) 55%, var(--text)); }
+.side[data-biome] .card .label { background: var(--tint); color: var(--tint-ink); }
+.side[data-biome] .tag { background: var(--bg); border-color: var(--border); }
+.side[data-biome] .slideshow { border: 3px solid var(--tint); }
+.side[data-biome] .card-foot { border-top-color: var(--border); }
+.side[data-biome] .side-foot { border-top-color: var(--border); background: color-mix(in srgb, var(--tint) 8%, var(--surface)); }
+.side[data-biome="meadow"] { --tint: #6fb352; --tint-ink: #10240b; --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ccircle cx='12' cy='14' r='3' fill='%23fff' fill-opacity='.45'/%3E%3Ccircle cx='12' cy='14' r='1.4' fill='%23ffd86b'/%3E%3Ccircle cx='40' cy='38' r='3' fill='%23ff8fb1' fill-opacity='.6'/%3E%3Ccircle cx='40' cy='38' r='1.4' fill='%23fff'/%3E%3Cpath d='M26 46l2-5 2 5' stroke='%23245c1a' stroke-opacity='.35' stroke-width='2' fill='none'/%3E%3C/svg%3E"); }
+.side[data-biome="autumn"] { --tint: #e07b39; --tint-ink: #2a1306; --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M8 20c4-9 15-10 15-10s-1 11-9 14c-4 1-7 0-6-4z' fill='%23fff' fill-opacity='.28'/%3E%3Cpath d='M36 44c3-7 12-8 12-8s-1 9-7 11c-3 1-6 0-5-3z' fill='%237a2d0c' fill-opacity='.22'/%3E%3Cpath d='M40 12l4 4' stroke='%23fff' stroke-opacity='.3' stroke-width='2'/%3E%3C/svg%3E"); }
+.side[data-biome="desert"] { --tint: #e9b45a; --tint-ink: #2e1f05; --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M0 40q14-12 28 0t28 0' stroke='%23fff' stroke-opacity='.35' stroke-width='3' fill='none'/%3E%3Cpath d='M0 18q14-10 28 0t28 0' stroke='%239a6a1c' stroke-opacity='.2' stroke-width='3' fill='none'/%3E%3C/svg%3E"); }
+.side[data-biome="snow"] { --tint: #8cc7e8; --tint-ink: #0b2233; --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cg stroke='%23fff' stroke-opacity='.6' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M14 8v12M8 14h12M10 10l8 8M18 10l-8 8'/%3E%3Cpath d='M42 36v8M38 40h8'/%3E%3C/g%3E%3C/svg%3E"); }
+.side[data-biome="volcano"] { --tint: #c8553d; --tint-ink: #fff4ec; --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cg fill='%23ffb02e'%3E%3Crect x='10' y='16' width='3' height='3' fill-opacity='.7'/%3E%3Crect x='40' y='36' width='3' height='3' fill-opacity='.5'/%3E%3Crect x='30' y='8' width='2' height='2' fill-opacity='.6'/%3E%3C/g%3E%3C/svg%3E"); }
+/* The launch island's card is a night-sky mission briefing in both themes */
+.side[data-biome="space"] { --tint: #2b3170; --tint-ink: #ffffff; --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cg fill='%23fff'%3E%3Crect x='8' y='10' width='3' height='3'/%3E%3Crect x='38' y='6' width='2' height='2' fill-opacity='.7'/%3E%3Crect x='26' y='30' width='2' height='2' fill-opacity='.6'/%3E%3Crect x='46' y='42' width='3' height='3'/%3E%3Crect x='12' y='44' width='2' height='2' fill-opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+  --paper: #151a3a; --surface: #121733; --bg: #1c2250; --border: #3a4280; --text: #eef0ff; --muted: #aab3d6;
+  --accent: #8fa6ff; --accent-soft: #232a5c; --on-accent: #0b0f24; color: var(--text); }
+.side[data-biome="space"] .card h3 { color: #ffffff; }
+.side[data-biome="space"] .card .label { background: #ffd86b; color: #1f1d24; }
+.side[data-biome="space"] .status.upcoming { background: #232a5c; color: #cfd6ff; }
+
+/* Card titles use the same pixel game font as the rest of the headings */
+.card h3 { font-family: "Pixelify Sans", Inter, system-ui, sans-serif; font-weight: 600; letter-spacing: 0; }
+
+/* Island terrain: hills drawn as contour bands, small islets offshore */
+.map-svg .hill { fill: var(--ground-dark); opacity: .55; stroke: color-mix(in srgb, var(--ground-dark) 70%, #000); stroke-opacity: .25; stroke-width: 1.5; }
+.map-svg .hill.rise { opacity: .7; }
+.map-svg .small-isle .beach { stroke-width: 2; }
+.map-svg .small-isle .td, .map-svg .small-isle .tr, .map-svg .small-isle .rk { stroke: var(--ink); stroke-width: 1.2; }
+
+/* Life on the water: boats and jumping fish */
+.map-svg .boat .hull { fill: #8a5a35; stroke: var(--ink); stroke-width: 1.5; }
+.map-svg .boat .hull.red { fill: #c8553d; }
+.map-svg .boat .deck { fill: #c99a5d; }
+.map-svg .boat .sail { fill: #fff; stroke: var(--ink); stroke-width: 1; }
+.map-svg .boat .cabin { fill: #f4f5f8; stroke: var(--ink); stroke-width: 1; }
+.map-svg .boat .wake { fill: none; stroke: #fff; stroke-opacity: .7; stroke-width: 1.5; stroke-linecap: round; }
+.map-svg .fish { fill: #f2a93b; stroke: var(--ink); stroke-width: 1; }
+.map-svg .splash { fill: none; stroke: #fff; stroke-width: 1.5; }
+
+/* Nav logo: the traveler in a little sky-blue frame */
+.logo-mark { background: linear-gradient(var(--sky-top), var(--sky-bottom)); padding: 0; overflow: hidden; }
+.logo-mark svg { display: block; width: 100%; height: 100%; }
+
+/* Contact in the nav: a glowing gold button with a shine that sweeps across it */
+.nav nav a.contact-cta {
+  position: relative; overflow: hidden; padding: 5px 12px; border-radius: 4px;
+  color: #2a1d02; font-weight: 600; background: linear-gradient(#ffe48a, #f2b33d);
+  border: 2px solid #8a5a12; box-shadow: 2px 2px 0 var(--frame), 0 0 10px 2px rgba(255, 200, 60, .55);
+  animation: gold-glow 2.4s ease-in-out infinite;
+}
+.nav nav a.contact-cta::before { content: none; }
+.nav nav a.contact-cta::after {
+  content: ""; position: absolute; top: -20%; bottom: -20%; left: -60%; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .85), transparent);
+  transform: skewX(-20deg); animation: gold-shine 3.2s ease-in-out infinite;
+}
+.nav nav a.contact-cta:hover { color: #2a1d02; filter: brightness(1.06); }
+@keyframes gold-glow { 50% { box-shadow: 2px 2px 0 var(--frame), 0 0 18px 6px rgba(255, 200, 60, .75); } }
+@keyframes gold-shine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+@media (prefers-reduced-motion: reduce) { .nav nav a.contact-cta, .nav nav a.contact-cta::after { animation: none; } }
+@media (max-width: 600px) { .nav nav a.contact-cta { display: inline-block; font-size: 14px; } }

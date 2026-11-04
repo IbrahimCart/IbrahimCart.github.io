@@ -74,25 +74,26 @@
   // The visitor's traveler: a pixel sprite drawn from this grid (facing right).
   // H hair, S skin, E eyes, B shirt, P backpack, L legs, K shoes.
   const SPRITE = (() => {
+    // H hair (h: a lighter curl), with a little afro on top.
     const art = [
-      "..HHHHH...", ".HHHHHHH..", ".HHSSSSSS.", ".HSSSESSE.", ".HSSSSSSS.",
-      "..SSSSSS..", ".PBBBBBB..", "PPBBBBBBS.", "PPBBBBBBS.", "PPBBBBBB..",
-      "..BBBBBB..", "..LL..LL..", "..LL..LL..", "..LL..LL..", ".KKK.KKK.."
+      "..HHhHHH..", ".HHHHHHhH.", "HhHHHHHHHH", "HHHHHhHHHH", "HHHSSSSSSH",
+      "HHSSSESSEH", ".HSSSSSSS.", "..SSSSSS..", ".PBBBBBB..", "PPBBBBBBS.",
+      "PPBBBBBBS.", "PPBBBBBB..", "..BBBBBB..", "..LL..LL..", "..LL..LL..", "..LL..LL..", ".KKK.KKK.."
     ];
-    const col = { H: "#3b2a20", S: "#f2c58f", E: "#1d1d22", B: "#315efb", P: "#c0563b", L: "#2f3b5c", K: "#1d1d22" };
+    const col = { H: "#1c130e", h: "#3d2a1e", S: "#9a6240", E: "#120c0a", B: "#315efb", P: "#c0563b", L: "#2f3b5c", K: "#1d1d22" };
     const part = { body: "", a: "", b: "" };
     art.forEach((row, y) => {
       for (let x = 0; x < row.length;) {
         const c = row[x];
         let w = 1;
         while (row[x + w] === c) w++;
-        if (col[c]) part[y >= 11 ? (x < 5 ? "a" : "b") : "body"] +=
+        if (col[c]) part[y >= 13 ? (x < 5 ? "a" : "b") : "body"] +=
           `<rect x="${x}" y="${y}" width="${w}" height="1" fill="${col[c]}"/>`;
         x += w;
       }
     });
-    return `<svg viewBox="0 -1 10 17" shape-rendering="crispEdges">
-      <ellipse cx="5" cy="15.2" rx="3.8" ry=".9" fill="rgba(0,0,0,.28)"/>
+    return `<svg viewBox="0 -1 10 19" shape-rendering="crispEdges">
+      <ellipse cx="5" cy="17.2" rx="3.8" ry=".9" fill="rgba(0,0,0,.28)"/>
       <g class="leg-a">${part.a}</g><g class="leg-b">${part.b}</g><g class="sp-body">${part.body}</g></svg>`;
   })();
 
@@ -104,6 +105,14 @@
     `<rect x="${r.indexOf("X")}" y="${y}" width="${r.lastIndexOf("X") - r.indexOf("X") + 1}" height="1"/>`).join("")}</svg>`;
   document.querySelector(".sky-fx").innerHTML = [1, 2, 3].map((n) => `<div class="cloud c${n}">${cloud}</div>`).join("");
   document.querySelector(".hero-char").innerHTML = SPRITE;
+  // The traveler is also the logo in the nav and the browser-tab icon.
+  // A headshot crop of the traveler (afro, face and shoulders) for the logo and tab icon.
+  const HEADSHOT = SPRITE.replace('viewBox="0 -1 10 19"', 'viewBox="-.5 -.5 11 10.5"').replace(/<ellipse[^>]*\/>/, "");
+  document.querySelector(".logo-mark").innerHTML = HEADSHOT;
+  const icon = document.querySelector('link[rel="icon"]');
+  if (icon) icon.href = "data:image/svg+xml," + encodeURIComponent(HEADSHOT
+    .replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ')
+    .replace('shape-rendering="crispEdges">', 'shape-rendering="crispEdges"><rect x="-.5" y="-.5" width="11" height="10.5" rx="1.5" fill="#7cc8f5"/>'));
 
   const progress = (arts) => {
     const done = arts.filter((a) => a.status === "released").length;
@@ -415,9 +424,17 @@
 
       const rnd = rng(490 + (narrow ? 1 : 0));
       // Each island is a wobbly circle: radius r(angle).
+      // Each island is a wobbly, slightly stretched blob: radius r(angle). Many
+      // harmonics of shrinking size give it bays and headlands like a real coastline.
       const shape = (r) => {
-        const p = [rnd() * 6, rnd() * 6, rnd() * 6];
-        return (a) => r * (1 + .08 * Math.sin(3 * a + p[0]) + .05 * Math.sin(5 * a + p[1]) + .03 * Math.sin(7 * a + p[2]));
+        const amp = [], ph = [];
+        for (let k = 2; k <= 11; k++) { amp.push(.17 / Math.pow(k, .85) * (.5 + rnd())); ph.push(rnd() * 6.283); }
+        const stretch = .08 + rnd() * .16, tilt = rnd() * Math.PI;
+        return (a) => {
+          let v = 1;
+          for (let k = 0; k < amp.length; k++) v += amp[k] * Math.sin((k + 2) * a + ph[k]);
+          return r * Math.max(.62, v) * (1 + stretch * Math.cos(2 * (a - tilt)));
+        };
       };
       // Scatter the islands like a real archipelago: rough directions around the hub
       // with random turns, distances and sizes, kept clear of each other and the overlays.
@@ -490,7 +507,7 @@
             crosses = isles.slice(1).some((o) => Math.hypot(o.x - px, o.y - py) < o.R * 1.2 + 8);
           }
           if (crosses) continue;
-          const ok = x > r + 16 && x < W - r - 16 && y > r + 20 && y < H - r - 40 && clearOf(x, y, r) &&
+          const ok = x > Math.max(r + 16, 54) && x < W - Math.max(r + 16, 54) && y > r + 20 && y < H - r - 40 && clearOf(x, y, r) &&
             isles.every((o) => Math.hypot(o.x - x, o.y - y) > o.R * 1.15 + r + 24) &&
             islets.every((o) => Math.hypot(o.x - x, o.y - y) > o.r + r + 60) &&
             spokes.slice(1).every((sp) => segDist(x, y, sp) > r + 34) &&
@@ -501,10 +518,113 @@
         }
       }
 
+      // Small rocky islets scattered just off each island's coast, kept clear of the
+      // bridges, the stepping stones, the labels and everything else.
+      const smalls = [];
+      const offPath = (x, y, o) => {
+        const L = Math.hypot(o.x - hub[0], o.y - hub[1]), ux = (o.x - hub[0]) / L, uy = (o.y - hub[1]) / L;
+        const t = Math.max(0, Math.min(L, (x - hub[0]) * ux + (y - hub[1]) * uy));
+        return Math.hypot(x - (hub[0] + ux * t), y - (hub[1] + uy * t));
+      };
+      isles.forEach((is, i) => {
+        const want = i === 0 ? 3 : 2 + Math.floor(rnd() * 3);
+        const avoid = i === 0 ? spokes.slice(1).map((sp) => sp.a) : [spokes[i].a + Math.PI];
+        for (let n = 0, t = 0; n < want && t < 160; t++) {
+          const a = rnd() * Math.PI * 2;
+          if (avoid.some((d) => angGap(a, d) < .5)) continue;
+          const r = 6 + rnd() * 12, reach = is.r(a) * 1.14 + r + 6 + rnd() * 36;
+          const x = is.x + Math.cos(a) * reach, y = is.y + Math.sin(a) * reach;
+          const ok = x > r + 8 && x < W - r - 8 && y > r + 8 && y < H - r - 8 && clearOf(x, y, r * .5) &&
+            spokes.slice(1).every((sp) => segDist(x, y, sp) > r + 18) &&
+            isles.every((o) => o === is || Math.hypot(o.x - x, o.y - y) > o.R * 1.25 + r + 10) &&
+            smalls.every((o) => Math.hypot(o.x - x, o.y - y) > o.r + r + 12) &&
+            islets.every((o) => Math.hypot(o.x - x, o.y - y) > o.r * 1.3 + r + 16 && offPath(x, y, o) > r + 12) &&
+            stops.every(([sx, sy]) => !(Math.abs(x - sx) < 95 + r && y > sy - 10 - r && y < sy + 95 + r));
+          if (!ok) continue;
+          smalls.push({ x, y, r, R: r, b: biomeOf(i).id, rf: shape(r), owner: i });
+          n++;
+        }
+      });
+
+      // Open water away from land and bridges, where fish may jump.
+      seaSpot = () => {
+        for (let t = 0; t < 40; t++) {
+          const x = 30 + Math.random() * (W - 60), y = 140 + Math.random() * (H - 180);
+          if (!onLand(x, y, 30) && spokes.slice(1).every((sp) => segDist(x, y, sp) > 30) && clearOf(x, y, 20)) return [x, y];
+        }
+        return null;
+      };
+
       // Sea with little waves, kept off the islands.
       const onLand = (x, y, pad) => isles.some((is) =>
         Math.hypot(x - is.x, y - is.y) < is.r(Math.atan2(y - is.y, x - is.x)) + pad) ||
-        islets.some((o) => Math.hypot(x - o.x, y - o.y) < o.r * 1.3 + pad);
+        islets.some((o) => Math.hypot(x - o.x, y - o.y) < o.r * 1.3 + pad) ||
+        smalls.some((o) => Math.hypot(x - o.x, y - o.y) < o.r * 1.4 + pad);
+      // Boats sail slow loops around a few islands (under the bridges); each loop
+      // follows the island's own coastline and must stay clear of every other island.
+      const BOAT = [
+        `<path class="hull" d="M11 0Q5-6-8-5L-9 5Q5 6 11 0Z"/><path class="deck" d="M6 0Q2-3-5-3L-5 3Q2 3 6 0Z"/><path class="sail" d="M8 0L-3-1.5L-3 1.5Z"/>`,
+        `<path class="hull red" d="M9 0Q4-5-7-4L-7 4Q4 5 9 0Z"/><rect class="cabin" x="-4" y="-2.5" width="6" height="5"/>`
+      ];
+      let boats = "";
+      const want = narrow ? 2 : 3;
+      let made = 0;
+      isles.map((_, k) => k).sort(() => rnd() - .5).forEach((k) => {
+        if (made >= want) return;
+        const n = made;
+        const is = isles[k];
+        for (const m of [1.3, 1.45, 1.6, 1.8, 2.05]) {
+          // Follow the coast, but swing out around this island's own little islets.
+          const ang = Array.from({ length: 72 }, (_, t) => t / 72 * Math.PI * 2);
+          let rad = ang.map((a) => is.r(a) * m + 12);
+          smalls.filter((o) => o.owner === k).forEach((o) => {
+            const ao = Math.atan2(o.y - is.y, o.x - is.x), d = Math.hypot(o.x - is.x, o.y - is.y);
+            const half = Math.atan2(o.r * 1.4 + 12, d) * 1.6;
+            rad = rad.map((r, t) => angGap(ang[t], ao) < half ? Math.max(r, d + o.r * 1.4 + 12) : r);
+          });
+          for (let pass = 0; pass < 6; pass++) {
+            rad = rad.map((r, t) => Math.max(r, (rad[(t + 71) % 72] + rad[(t + 1) % 72]) / 2));
+          }
+          const pts = ang.map((a, t) => [is.x + Math.cos(a) * rad[t], is.y + Math.sin(a) * rad[t]]);
+          const clear = pts.every(([x, y]) => x > 8 && x < W - 8 && y > 8 && y < H - 8 &&
+            isles.every((o) => o === is || Math.hypot(x - o.x, y - o.y) > o.r(Math.atan2(y - o.y, x - o.x)) * 1.06 + 6) &&
+            smalls.every((o) => Math.hypot(x - o.x, y - o.y) > o.r * 1.1 + 5) &&
+            islets.every((o) => Math.hypot(x - o.x, y - o.y) > o.r * 1.2 + 5));
+          if (!clear) continue;
+          if (rnd() < .5) pts.reverse();
+          const dur = Math.round(50 + rnd() * 40);
+          boats += `<g class="boat"><g transform="scale(1.45)">${BOAT[n % BOAT.length]}<path class="wake" d="M-11-3l-8-3M-11 3l-8 3"/></g>` +
+            `<animateMotion dur="${dur}s" begin="-${f(rnd() * dur)}s" repeatCount="indefinite" rotate="auto" ` +
+            `path="M${pts.map(([x, y]) => f(x) + " " + f(y)).join("L")}Z"/></g>`;
+          made++;
+          break;
+        }
+      });
+
+      // One more boat laps the whole archipelago, just outside all the land.
+      {
+        const landAt = (x, y, pad) => isles.some((o) => Math.hypot(x - o.x, y - o.y) < o.r(Math.atan2(y - o.y, x - o.x)) * 1.12 + pad) ||
+          smalls.some((o) => Math.hypot(x - o.x, y - o.y) < o.r * 1.35 + pad) || islets.some((o) => Math.hypot(x - o.x, y - o.y) < o.r * 1.3 + pad);
+        let rad = Array.from({ length: 90 }, (_, t) => {
+          const a = t / 90 * Math.PI * 2;
+          let far = 0;
+          for (let d = 0; d < Math.max(W, H); d += 6) if (landAt(hub[0] + Math.cos(a) * d, hub[1] + Math.sin(a) * d, 0)) far = d;
+          return far + 34;
+        });
+        for (let pass = 0; pass < 8; pass++) rad = rad.map((r, t) => Math.max(r, (rad[(t + 89) % 90] + rad[(t + 1) % 90]) / 2));
+        const pts = rad.map((r, t) => {
+          const a = t / 90 * Math.PI * 2;
+          return [Math.max(14, Math.min(W - 14, hub[0] + Math.cos(a) * r)), Math.max(130, Math.min(H - 14, hub[1] + Math.sin(a) * r))];
+        });
+        if (pts.every(([x, y]) => !landAt(x, y, 4))) {
+          if (rnd() < .5) pts.reverse();
+          const dur = Math.round(120 + rnd() * 40);
+          boats += `<g class="boat"><g transform="scale(1.45)">${BOAT[0]}<path class="wake" d="M-11-3l-8-3M-11 3l-8 3"/></g>` +
+            `<animateMotion dur="${dur}s" begin="-${f(rnd() * dur)}s" repeatCount="indefinite" rotate="auto" ` +
+            `path="M${pts.map(([x, y]) => f(x) + " " + f(y)).join("L")}Z"/></g>`;
+        }
+      }
+
       let waves = "";
       for (let t = 0; t < W * H / 5000; t++) {
         const x = rnd() * W, y = rnd() * H;
@@ -535,8 +655,9 @@
       // Islands: shallow water, beach and biome ground, plus scenery.
       const poly = (is, k) => {
         let d = "";
-        for (let i = 0; i < 72; i++) {
-          const a = i / 72 * Math.PI * 2, r = is.r(a) * k;
+        const steps = is.R > 40 ? 140 : 40;
+        for (let i = 0; i < steps; i++) {
+          const a = i / steps * Math.PI * 2, r = is.r(a) * k;
           d += `${i ? "L" : "M"}${f(is.x + Math.cos(a) * r)} ${f(is.y + Math.sin(a) * r)}`;
         }
         return d + "Z";
@@ -554,8 +675,20 @@
           const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * is.r(a) * .8;
           tufts += `M${f(is.x + Math.cos(a) * r)} ${f(is.y + Math.sin(a) * r)}l2-5 2 5`;
         }
+        // Higher ground: a hill and a smaller rise, a little off centre, like contour lines.
+        const hx = is.x + (rnd() - .5) * is.R * .3, hy = is.y + (rnd() - .5) * is.R * .3;
+        const hill = { x: hx, y: hy, r: shape(is.R * .5), R: is.R * .5 };
+        const rise = { x: hx + (rnd() - .5) * is.R * .12, y: hy + (rnd() - .5) * is.R * .12, r: shape(is.R * .24), R: is.R * .24 };
         return `<g class="bm-${b.id}"><path class="shallow" d="${poly(is, 1.14)}"/><path class="beach" d="${poly(is, 1)}"/>` +
-          `<path class="g" d="${poly(is, .86)}"/><path class="tuft" d="${tufts}"/></g>`;
+          `<path class="g" d="${poly(is, .86)}"/><path class="hill" d="${poly(hill, 1)}"/><path class="hill rise" d="${poly(rise, 1)}"/>` +
+          `<path class="tuft" d="${tufts}"/></g>`;
+      }).join("") + smalls.map((o) => {
+        const is = { x: o.x, y: o.y, r: o.rf, R: o.r };
+        const top = o.r > 11 && rnd() < .7
+          ? `<circle class="td" cx="${f(o.x - 1)}" cy="${f(o.y - 2)}" r="${f(o.r * .32)}"/><circle class="tr" cx="${f(o.x - 2)}" cy="${f(o.y - 3)}" r="${f(o.r * .18)}"/>`
+          : `<path class="rk" d="M${f(o.x - 4)} ${f(o.y + 2)}l2-5 4-1 3 4z"/>`;
+        return `<g class="bm-${o.b} small-isle"><path class="shallow" d="${poly(is, 1.35)}"/><path class="beach" d="${poly(is, 1)}"/>` +
+          (o.r > 9 ? `<path class="g" d="${poly(is, .7)}"/>` : "") + `${top}</g>`;
       }).join("");
 
       // Labels go on the side of each landmark that is furthest from its bridges.
@@ -622,6 +755,7 @@
         <defs><radialGradient id="lamp"><stop offset="0" stop-color="#ffd86b" stop-opacity=".5"/><stop offset="1" stop-color="#ffd86b" stop-opacity="0"/></radialGradient></defs>
         <rect class="sea" width="${W}" height="${H}"/>
         <path class="wave" d="${waves}"/>
+        ${reduce.matches ? "" : boats}
         ${islands}
         ${islets.map((o) => {
           const par = isles[o.p], from = par.r(o.a) * .9, to = Math.hypot(o.x - par.x, o.y - par.y) - o.r * .85;
@@ -720,6 +854,53 @@
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     const play = (el, frames, opts) => reduce.matches ? Promise.resolve() :
       el.animate(frames, { fill: "forwards", ...opts }).finished.catch(() => {});
+    // The moon: dusty grey seas, rough-rimmed craters lit from the upper left (shadowed
+    // inner wall, bright far rim, foreshortened toward the edge) and lots of small pits.
+    function moonSVG() {
+      let seed = 1969;
+      const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const C = 200, R = 196;
+      const blob = (x, y, rad, flat, rot, jit, n) => {
+        let d = "";
+        for (let k = 0; k < n; k++) {
+          const a = k / n * Math.PI * 2, j = 1 + (r() - .5) * jit;
+          const px = Math.cos(a) * rad * flat * j, py = Math.sin(a) * rad * j;
+          d += (k ? "L" : "M") + (x + px * Math.cos(rot) - py * Math.sin(rot)).toFixed(1) + " " + (y + px * Math.sin(rot) + py * Math.cos(rot)).toFixed(1);
+        }
+        return d + "Z";
+      };
+      const seas = [[150, 150, 70], [255, 230, 55], [170, 285, 42]].map(([x, y, rad]) =>
+        `<path d="${blob(x, y, rad, 1, 0, .35, 18)}" fill="#c8ccd7"/>`).join("");
+      let craters = "";
+      const placed = [];
+      for (let t = 0; t < 400 && placed.length < 16; t++) {
+        const rad = placed.length < 6 ? 16 + r() * 18 : 6 + r() * 9;
+        const x = C + (r() - .5) * 2 * R, y = C + (r() - .5) * 2 * R, dist = Math.hypot(x - C, y - C);
+        if (dist > R - rad - 6 || placed.some(([px, py, pr]) => Math.hypot(px - x, py - y) < pr + rad + 6)) continue;
+        placed.push([x, y, rad]);
+        const flat = Math.sqrt(Math.max(.2, 1 - (dist / R) ** 2)), rot = Math.atan2(y - C, x - C);
+        const ox = -rad * .14, oy = -rad * .14;
+        craters += `<path d="${blob(x, y, rad, flat, rot, .14, 20)}" fill="#c4c8d3" stroke="#2b2a33" stroke-width="1.6" stroke-linejoin="round"/>` +
+          `<path d="${blob(x + ox, y + oy, rad * .78, flat, rot, .12, 16)}" fill="#a9aebb"/>` +
+          `<path d="${blob(x + ox * .3, y + oy * .3, rad * .6, flat, rot, .1, 14)}" fill="#bcc0cc"/>` +
+          `<path d="M${(x + rad * .62).toFixed(1)} ${(y - rad * .05).toFixed(1)}Q${(x + rad * .55).toFixed(1)} ${(y + rad * .55).toFixed(1)} ${(x - rad * .05).toFixed(1)} ${(y + rad * .62).toFixed(1)}" fill="none" stroke="#f1f2f6" stroke-width="${(rad * .12 + .8).toFixed(1)}" stroke-linecap="round"/>`;
+        if (rad > 22) for (let k = 0; k < 7; k++) {
+          const a = r() * Math.PI * 2, e = rad * (1.25 + r() * .5);
+          craters += `<circle cx="${(x + Math.cos(a) * e).toFixed(1)}" cy="${(y + Math.sin(a) * e).toFixed(1)}" r="${(1 + r() * 1.4).toFixed(1)}" fill="#b5bac6"/>`;
+        }
+      }
+      let pits = "";
+      for (let t = 0; t < 70; t++) {
+        const a = r() * Math.PI * 2, dd = Math.sqrt(r()) * (R - 8), x = C + Math.cos(a) * dd, y = C + Math.sin(a) * dd, pr = 1.2 + r() * 2.6;
+        if (placed.some(([px, py, prr]) => Math.hypot(px - x, py - y) < prr + pr + 2)) continue;
+        pits += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${pr.toFixed(1)}" fill="#b3b8c4"/><circle cx="${(x + pr * .35).toFixed(1)}" cy="${(y + pr * .35).toFixed(1)}" r="${(pr * .45).toFixed(1)}" fill="#e6e8ee"/>`;
+      }
+      return `<svg viewBox="0 0 400 400"><defs><clipPath id="moon-clip"><circle cx="${C}" cy="${C}" r="${R}"/></clipPath>
+        <radialGradient id="moon-shade" cx="35%" cy="32%" r="75%"><stop offset=".55" stop-color="#1e2340" stop-opacity="0"/><stop offset="1" stop-color="#1e2340" stop-opacity=".32"/></radialGradient></defs>
+        <circle cx="${C}" cy="${C}" r="${R}" fill="#dcdfe7"/>
+        <g clip-path="url(#moon-clip)">${seas}${pits}${craters}<circle cx="${C}" cy="${C}" r="${R}" fill="url(#moon-shade)"/></g>
+        <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#2b2a33" stroke-width="4"/></svg>`;
+    }
     const scene = document.createElement("div");
     scene.className = "space-scene";
     scene.innerHTML = `
@@ -735,10 +916,7 @@
         return `<svg viewBox="0 0 1920 1200" preserveAspectRatio="xMidYMid slice">${out}</svg>`;
       })()}</div>
       <div class="ss-moon" aria-hidden="true">
-        <svg viewBox="0 0 400 400"><circle cx="200" cy="200" r="197" fill="#d9dce5" stroke="#2b2a33" stroke-width="4"/>
-          <g fill="#bfc3cf" stroke="#2b2a33" stroke-width="2"><ellipse cx="120" cy="70" rx="26" ry="11"/><ellipse cx="290" cy="95" rx="34" ry="13"/>
-          <ellipse cx="80" cy="170" rx="20" ry="9"/><ellipse cx="330" cy="190" rx="22" ry="10"/><ellipse cx="210" cy="140" rx="16" ry="7"/>
-          <ellipse cx="150" cy="250" rx="40" ry="16"/><ellipse cx="280" cy="290" rx="28" ry="12"/></g></svg>
+        ${moonSVG()}
         <div class="ss-crew"><svg viewBox="-20 -40 60 44" width="90" height="66">${ASTRO(0, 0)}<path class="pole" d="M18 0V-34"/><rect class="flag" x="18" y="-34" width="18" height="11"/></svg></div>
       </div>
       <div class="ss-ship" aria-hidden="true">${ROCKET}</div>
@@ -804,25 +982,28 @@
       for (const k of ["free", "gx", "gy", "gd", "mx", "my", "md"]) scene.style.setProperty("--" + k, sky[k] + "px");
     }
     const VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
+    // Storybook look to match the map: crisp, gently shaded, lit from the moon's side,
+    // with the same ink outline as the islands and a thin flat atmosphere ring.
     const FRAG = `precision highp float;
       uniform vec2 uRes;uniform float uDpr;uniform vec2 uC;uniform float uF;uniform float uD;uniform float uRho;
-      uniform vec2 uMap;uniform vec2 uOff;uniform float uCurve;uniform vec3 uSea;uniform sampler2D uTex;
+      uniform vec2 uMap;uniform vec2 uOff;uniform float uCurve;uniform vec3 uSea;uniform sampler2D uTex;uniform float uPxR;
       void main(){
         vec2 q=vec2(gl_FragCoord.x,uRes.y*uDpr-gl_FragCoord.y)/uDpr;
         vec3 o=vec3(0.,0.,uD);vec3 r=normalize(vec3(q-uC,-uF));
         float b=dot(o,r);float disc=b*b-(dot(o,o)-1.);
-        if(disc<0.){float miss=sqrt(max(dot(o,o)-b*b,0.))-1.;
-          gl_FragColor=vec4(.42,.76,.95,exp(-miss*40.)*.6*uCurve);return;}
+        if(disc<0.){
+          float px=(sqrt(max(dot(o,o)-b*b,0.))-1.)*uPxR;
+          if(px<2.5)gl_FragColor=vec4(.17,.16,.2,uCurve);
+          else if(px<9.)gl_FragColor=vec4(.56,.84,.97,.32*uCurve*(1.-smoothstep(6.,9.,px)));
+          else gl_FragColor=vec4(0.);
+          return;}
         vec3 p=o+(-b-sqrt(disc))*r;
         float lon=atan(p.x,p.z);float lat=asin(clamp(p.y,-1.,1.));
         vec2 uv=(uMap*.5+(vec2(lon,lat)+uOff)*uRho)/uMap;
         vec3 col=uSea;
         if(uv.x>=0.&&uv.x<=1.&&uv.y>=0.&&uv.y<=1.)col=texture2D(uTex,uv).rgb;
-        col=mix(col,vec3(.95,.97,1.),smoothstep(1.12,1.22,abs(lat)));
-        float diff=clamp(dot(p,normalize(vec3(-.45,-.55,.75))),0.,1.);
-        col*=mix(1.,.32+.8*diff,uCurve);
-        float rim=pow(1.-clamp(dot(p,-r),0.,1.),2.5);
-        col=mix(col,vec3(.62,.86,1.),rim*.7*uCurve);
+        float diff=dot(p,normalize(vec3(.55,-.45,.7)));
+        col*=mix(1.,mix(.84,1.,smoothstep(-.05,.3,diff)),uCurve);
         gl_FragColor=vec4(col,1.);
       }`;
     const earth = { gl: null, canvas: null, ok: false, tex: null, u: {}, sea: [0.36, 0.71, 0.89], st: null, raf: 0 };
@@ -846,7 +1027,7 @@
         const loc = gl.getAttribLocation(prog, "a");
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        for (const n of ["uRes", "uDpr", "uC", "uF", "uD", "uRho", "uMap", "uOff", "uCurve", "uSea", "uTex"]) earth.u[n] = gl.getUniformLocation(prog, n);
+        for (const n of ["uRes", "uDpr", "uC", "uF", "uD", "uRho", "uMap", "uOff", "uCurve", "uSea", "uTex", "uPxR"]) earth.u[n] = gl.getUniformLocation(prog, n);
         earth.tex = gl.createTexture();
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -897,6 +1078,7 @@
     function drawEarth() {
       const gl = earth.gl, cv = earth.canvas, st = earth.st;
       if (!earth.ok || !st) return;
+      // The further out the camera, the chunkier the pixels, so the globe reads as pixel art.
       const dpr = Math.min(2, devicePixelRatio || 1), w = innerWidth, h = innerHeight - navH();
       if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
         cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
@@ -910,6 +1092,7 @@
       gl.uniform1f(u.uRho, st.rho); gl.uniform2f(u.uMap, W, H);
       gl.uniform2f(u.uOff, st.lon + st.rot, st.lat); gl.uniform1f(u.uCurve, st.curve);
       gl.uniform3f(u.uSea, ...earth.sea); gl.uniform1i(u.uTex, 0);
+      gl.uniform1f(u.uPxR, st.f / Math.sqrt(Math.max(st.d * st.d - 1, 1e-4)));   // screen px per globe radius
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
     // Camera states: "near" shows the map exactly as it was on screen; "far" is the globe.
@@ -961,7 +1144,7 @@
       const t0 = performance.now();
       const spinTick = (now) => {
         if (!inSpace || !earth.spinning) return;
-        earth.st.rot = -(now - t0) / 1000 * (2 * Math.PI / 160);   // islands drift right, toward the moon
+        earth.st.rot = -(now - t0) / 1000 * (2 * Math.PI / 320);   // one slow turn every ~5 minutes
         drawEarth();
         earth.raf = requestAnimationFrame(spinTick);
       };
@@ -1164,6 +1347,7 @@
       cards.forEach((c) => { c.hidden = true; });
       side.querySelector(".about-card").hidden = false;
       side.classList.add("about");
+      delete side.dataset.biome;
       $("side-where").textContent = "About me";
       $("side-prev").hidden = true;
       $("side-next").disabled = false;
@@ -1175,6 +1359,7 @@
       shown = i;
       side.querySelector(".about-card").hidden = true;
       side.classList.remove("about");
+      side.dataset.biome = biomeOf(i).id;        // the card takes on its island's look
       cards.forEach((c, k) => { c.hidden = k !== i; });
       $("side-where").textContent = `Stop ${pad(i + 1)} of ${pad(N)} · ${biomeOf(i).name}`;
       $("side-prev").hidden = false;
@@ -1257,6 +1442,26 @@
     $("map-hint").textContent = canHover
       ? "Move your cursor to walk across the bridges. Click a landmark to open its card."
       : "Tap a landmark to walk there and open its card.";
+
+    // A fish jumps out of the sea every few seconds, with a splash where it goes in and out.
+    let seaSpot = () => null;
+    setInterval(() => {
+      if (inSpace || reduce.matches || document.hidden || Math.random() < .35) return;
+      const at = seaSpot();
+      if (!at) return;
+      const [x, y] = at, dir = Math.random() < .5 ? 1 : -1, len = 14 + Math.random() * 10;
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "fish-jump");
+      g.innerHTML = `<circle class="splash" cx="${x}" cy="${y}" r="1"><animate attributeName="r" from="1" to="9" dur=".6s" fill="freeze"/>` +
+        `<animate attributeName="opacity" from="1" to="0" dur=".6s" fill="freeze"/></circle>` +
+        `<circle class="splash" cx="${x + dir * len}" cy="${y}" r="1" opacity="0"><animate attributeName="r" from="1" to="9" begin=".75s" dur=".6s" fill="freeze"/>` +
+        `<animate attributeName="opacity" values="1;0" begin=".75s" dur=".6s" fill="freeze"/></circle>` +
+        `<g><path class="fish" d="M5 0L-3-3L-5 0L-3 3Z M-5 0L-9-3V3Z"/>` +
+        `<animateMotion dur=".8s" fill="freeze" rotate="auto" path="M${x} ${y}Q${x + dir * len / 2} ${y - 16} ${x + dir * len} ${y}"/>` +
+        `<animate attributeName="opacity" values="1;1;0" dur=".85s" fill="freeze"/></g>`;
+      svg.insertBefore(g, svg.querySelector(".night"));
+      setTimeout(() => g.remove(), 1600);
+    }, 1400);
 
     build();
     let pending = 0, lastW = W;
