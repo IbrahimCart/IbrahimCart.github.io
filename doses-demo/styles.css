@@ -121,9 +121,10 @@ button, input, textarea { font: inherit; }
 .switch[aria-checked="true"] { background: var(--green); }
 .switch[aria-checked="true"]::after { transform: translateX(20px); }
 .list .li.grace { display: block; }
-.grace-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
-.grace-field { display: inline-flex; align-items: center; gap: 8px; font-size: 17px; }
-.grace-input { width: 58px; padding: 6px 8px; border: 1px solid #c4c4c4; border-radius: 8px; background: #fff; color: var(--ink); text-align: center; font-size: 17px; }
+.grace-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.grace-field { display: flex; align-items: center; gap: 16px; margin-top: 10px; font-size: 17px; }
+.grace-field .pair { display: inline-flex; align-items: center; gap: 8px; }
+.grace-input { width: 52px; padding: 6px 8px; border: 1px solid #c4c4c4; border-radius: 8px; background: #fff; color: var(--ink); text-align: center; font-size: 17px; }
 .stepper { display: inline-flex; background: #e6e6e6; border-radius: 10px; overflow: hidden; }
 .stepper button { width: 44px; height: 34px; border: 0; background: none; font-size: 20px; cursor: pointer; }
 .stepper button + button { border-left: 1px solid #cfcfcf; }

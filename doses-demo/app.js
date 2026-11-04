@@ -103,26 +103,47 @@
       "</span><small>" + hhmm(r.hour, r.minute) + '</small></button><button type="button" class="switch" role="switch" aria-checked="' + r.isEnabled +
       '" aria-label="' + esc(r.title) + ' reminder" data-action="toggle" data-rid="' + esc(r.id) + '"></button></div>'
     ).join("");
-    const hours = log.schedule.graceMinutes / 60;
+    const total = log.schedule.graceMinutes, g = graceParts(total);
     return '<h1 class="title">Settings</h1><h3 class="section">Reminders</h3><div class="list">' + rows +
       (reminders.length < L.MAX_REMINDERS ? '<button type="button" class="add" data-action="add">+ Add a reminder</button>' : "") + "</div>" +
       '<p class="foot">Up to ' + L.MAX_REMINDERS + ". Names you type are kept only in this browser (in the iPhone app they also show in the reminder on your lock screen). " +
       "Tap a reminder to change or delete it; what you already recorded stays in History.</p>" +
-      '<h3 class="section">Repeats</h3><div class="list"><div class="li grace"><label for="grace-input">Count as missed after</label>' +
-      '<div class="grace-row"><span class="grace-field"><input type="text" id="grace-input" class="grace-input" inputmode="numeric" maxlength="2" autocomplete="off" value="' + hours +
-      '" aria-label="Hours until a dose counts as missed"> <span>' + (hours === 1 ? "hour" : "hours") + '</span></span>' +
-      '<span class="stepper"><button type="button" aria-label="Fewer hours" data-action="grace" data-delta="-1"' + (hours <= MIN_GRACE_HOURS ? " disabled" : "") +
-      '>−</button><button type="button" aria-label="More hours" data-action="grace" data-delta="1"' + (hours >= MAX_GRACE_HOURS ? " disabled" : "") + ">+</button></span></div></div></div>" +
-      '<p class="foot">Type a number of hours from ' + MIN_GRACE_HOURS + " to " + MAX_GRACE_HOURS + ", or use the arrows.</p>" +
+      '<h3 class="section">Repeats</h3><div class="list"><div class="li grace">' +
+      '<div class="grace-top"><span id="grace-label">Count as missed after</span><span class="stepper">' +
+      '<button type="button" aria-label="Less time" data-action="grace" data-delta="-1"' + (total <= MIN_GRACE ? " disabled" : "") + '>−</button>' +
+      '<button type="button" aria-label="More time" data-action="grace" data-delta="1"' + (total >= MAX_GRACE ? " disabled" : "") + '>+</button></span></div>' +
+      '<div class="grace-field" role="group" aria-labelledby="grace-label">' +
+      '<span class="pair"><input type="text" id="grace-h" class="grace-input" inputmode="numeric" maxlength="2" autocomplete="off" value="' + g.h + '" aria-label="Hours"> <span id="grace-h-unit">' + plural(g.h, "hour", "hours") + "</span></span>" +
+      '<span class="pair"><input type="text" id="grace-m" class="grace-input" inputmode="numeric" maxlength="2" autocomplete="off" value="' + g.m + '" aria-label="Minutes"> <span id="grace-m-unit">' + plural(g.m, "min", "mins") + "</span></span></div></div></div>" +
+      '<p class="foot">Type hours and minutes (from 1 minute to 24 hours), or use the arrows, which move 15 minutes at a time.</p>' +
       '<p class="foot">In the iPhone app you also get one gentle reminder at the set time, and it repeats until you tap &ldquo;I took it&rdquo;.</p>' +
       '<p class="privacy">In this demo everything stays in your browser. Nothing is sent anywhere. This app is a reminder and a record only. Always follow your doctor\'s and pharmacist\'s instructions.</p>';
   }
 
-  // "Count as missed after N hours": typed in the box or stepped with the arrows, always kept between the limits.
-  const MIN_GRACE_HOURS = 1, MAX_GRACE_HOURS = 24;
-  function setGraceHours(hours) {
-    const h = Math.min(MAX_GRACE_HOURS, Math.max(MIN_GRACE_HOURS, Math.round(hours)));
-    changeSchedule((s) => { s.graceMinutes = h * 60; });
+  // "Count as missed after": hours and minutes typed in the boxes, or stepped with the arrows (15 minutes).
+  // Always kept between 1 minute and 24 hours. Only the Settings row is updated, so tabbing between the
+  // two boxes is not interrupted by a redraw.
+  const MIN_GRACE = 1, MAX_GRACE = 24 * 60, GRACE_STEP = 15;
+  const plural = (n, one, many) => (n === 1 ? one : many);
+  const graceParts = (total) => ({ h: Math.floor(total / 60), m: total % 60 });
+  function setGraceMinutes(total) {
+    const minutes = Math.min(MAX_GRACE, Math.max(MIN_GRACE, Math.round(total)));
+    const s = clone(log.schedule);
+    s.graceMinutes = minutes;
+    L.changeSchedule(log, s, now());
+    save();
+    syncGraceRow();
+  }
+  function syncGraceRow() {
+    const hb = $("#grace-h"), mb = $("#grace-m");
+    if (!hb) return;
+    const total = log.schedule.graceMinutes, g = graceParts(total);
+    if (hb.value !== String(g.h)) hb.value = g.h;
+    if (mb.value !== String(g.m)) mb.value = g.m;
+    $("#grace-h-unit").textContent = plural(g.h, "hour", "hours");
+    $("#grace-m-unit").textContent = plural(g.m, "min", "mins");
+    $('[data-action="grace"][data-delta="-1"]').disabled = total <= MIN_GRACE;
+    $('[data-action="grace"][data-delta="1"]').disabled = total >= MAX_GRACE;
   }
 
   function render() {
@@ -281,7 +302,7 @@
       case "toggle": changeSchedule((s) => { const r = s.reminders.find((x) => x.id === el.dataset.rid); if (r) r.isEnabled = !r.isEnabled; }); break;
       case "edit": openEditor(el.dataset.rid); break;
       case "add": openEditor(null); break;
-      case "grace": setGraceHours(log.schedule.graceMinutes / 60 + Number(el.dataset.delta)); break;
+      case "grace": setGraceMinutes(log.schedule.graceMinutes + Number(el.dataset.delta) * GRACE_STEP); break;
       case "addnote": $("#note-text").value = ""; $("#note-dialog").showModal(); break;
       case "delnote": L.removeNote(log, el.dataset.id); save(); render(); break;
       case "share": $("#report-text").textContent = L.report(log, now()); $("#report-dialog").showModal(); break;
@@ -297,17 +318,17 @@
     }
   });
 
-  // The typed hours: digits only while typing, applied when the box loses focus or Enter is pressed.
+  // The typed time: digits only while typing, applied when a box loses focus or Enter is pressed.
   document.addEventListener("input", (e) => {
     if (e.target.matches(".grace-input")) e.target.value = e.target.value.replace(/\D/g, "");
   });
-  function applyTypedGrace(input) {
-    const typed = parseInt(input.value, 10);
-    if (Number.isNaN(typed)) render(); // empty: put the current number back
-    else setGraceHours(typed);
+  function applyTypedGrace() {
+    const h = parseInt($("#grace-h").value, 10), m = parseInt($("#grace-m").value, 10);
+    if (Number.isNaN(h) && Number.isNaN(m)) syncGraceRow(); // both empty: put the current time back
+    else setGraceMinutes((h || 0) * 60 + (m || 0)); // 90 minutes becomes 1 hour 30 mins
   }
-  document.addEventListener("change", (e) => { if (e.target.matches(".grace-input")) applyTypedGrace(e.target); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".grace-input")) applyTypedGrace(e.target); });
+  document.addEventListener("change", (e) => { if (e.target.matches(".grace-input")) applyTypedGrace(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".grace-input")) applyTypedGrace(); });
 
   $("#clock-input").addEventListener("change", (e) => {
     const [h, m] = e.target.value.split(":").map(Number);
