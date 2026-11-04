@@ -1,30 +1,45 @@
+/* Game theme: daytime map in light mode, night map in dark mode */
 :root {
-  --bg: #fbfbfa;
-  --surface: #ffffff;
-  --text: #16181d;
-  --muted: #5f6672;
-  --border: #e6e7ea;
+  --bg: #f5f0e3;
+  --surface: #fffdf7;
+  --text: #1f1d24;
+  --muted: #5d5a66;
+  --border: #ddd4bf;
+  --frame: #2b2a33;
+  --hard: 4px 4px 0 #2b2a33;
   --accent: #315efb;
-  --accent-soft: #eaf0ff;
+  --accent-soft: #e6ecff;
   --on-accent: #ffffff;
-  --done: #1a7f4b;   --done-bg: #e5f5ec;
-  --prog: #9a6400;   --prog-bg: #fdf1dc;
-  --plan: #5f6672;   --plan-bg: #eff0f2;
-  --shadow: 0 1px 2px rgba(16,24,40,.04), 0 4px 16px rgba(16,24,40,.06);
+  --done: #1a7f4b;   --done-bg: #e2f3e8;
+  --prog: #9a6400;   --prog-bg: #fbefd6;
+  --plan: #5d5a66;   --plan-bg: #ece8de;
+  --shadow: none;
+  /* map */
+  --grass: #a9d574; --grass-dark: #8cbf5a; --trail: #ecd8a6; --trail-edge: #c7a564;
+  --water: #6cc3e8; --water-edge: #3f97c4; --tree: #6fb352; --tree-dark: #3f8a3c; --trunk: #8a5a35;
+  --rock: #c4beb2; --wall: #f6ead0; --roof: #c8553d; --roof-2: #4f74d1; --dome: #8e6bd8; --rocket: #eef0f4;
+  --mountain: #93ab9c; --snow: #fbfbf7; --ink: #2b2a33; --fog: rgba(255, 255, 255, .82); --glow: 0; --night: 0;
+  --sky-top: #7cc8f5; --sky-bottom: #d6f0ff; --hill: #8cc66a; --cloud: #ffffff; --stars: 0;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1115; --surface: #161a20; --text: #e8eaed; --muted: #9aa1ad;
-    --border: #262b33; --accent: #7a9bff; --on-accent: #0f1115; --accent-soft: #1b2440;
+    --bg: #10131a; --surface: #181c25; --text: #e8eaed; --muted: #a1a7b3;
+    --border: #2b3240; --frame: #4a5468; --hard: 4px 4px 0 #000;
+    --accent: #7a9bff; --on-accent: #0f1115; --accent-soft: #1b2440;
     --done: #5fd39a; --done-bg: #12291e; --prog: #f0b75a; --prog-bg: #2d2412;
-    --plan: #9aa1ad; --plan-bg: #20242b; --shadow: none;
+    --plan: #a1a7b3; --plan-bg: #20242b;
+    --ink: #07090d; --fog: rgba(16, 20, 30, .7); --glow: 1; --night: .52;
+    --sky-top: #070b1d; --sky-bottom: #1d2a52; --hill: #1e3a2b; --cloud: #2a3658; --stars: 1;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1115; --surface: #161a20; --text: #e8eaed; --muted: #9aa1ad;
-  --border: #262b33; --accent: #7a9bff; --on-accent: #0f1115; --accent-soft: #1b2440;
+  --bg: #10131a; --surface: #181c25; --text: #e8eaed; --muted: #a1a7b3;
+  --border: #2b3240; --frame: #4a5468; --hard: 4px 4px 0 #000;
+  --accent: #7a9bff; --on-accent: #0f1115; --accent-soft: #1b2440;
   --done: #5fd39a; --done-bg: #12291e; --prog: #f0b75a; --prog-bg: #2d2412;
-  --plan: #9aa1ad; --plan-bg: #20242b; --shadow: none;
+  --plan: #a1a7b3; --plan-bg: #20242b;
+  --ink: #07090d; --fog: rgba(16, 20, 30, .7); --glow: 1; --night: .52;
+  --sky-top: #070b1d; --sky-bottom: #1d2a52; --hill: #1e3a2b; --cloud: #2a3658; --stars: 1;
 }
 
 * { box-sizing: border-box; }
@@ -168,3 +183,351 @@ h2 { font-size: 26px; letter-spacing: -.01em; margin: 0 0 20px; }
 .ss-btn:disabled, .lb-nav:disabled { opacity: .3; cursor: default; }
 .ss-btn:disabled:hover { background: rgba(0,0,0,.55); }
 .lb-nav:disabled:hover { background: rgba(0,0,0,.6); }
+
+/* ---------- Game theme ---------- */
+.pixel, h1, h2, .logo-mark, .label, .status, .counter, .loc-name, .pin, .side-where, .npc-name, .log-title, .quest .q-title, .footer { font-family: "Pixelify Sans", Inter, system-ui, sans-serif; }
+h1 { font-weight: 700; letter-spacing: 0; }
+h2 { font-weight: 600; letter-spacing: 0; }
+.logo-mark { border-radius: 4px; border: 2px solid var(--frame); font-size: 15px; }
+.theme-btn, .nav nav a.pill-link { border: 2px solid var(--frame); border-radius: 4px; }
+.badge { border-radius: 4px; border: 2px solid var(--frame); background: var(--surface); color: var(--text); font-family: "Pixelify Sans", Inter, sans-serif; font-size: 14px; }
+.dot { border-radius: 0; background: var(--done); }
+.hero { padding: 64px 0 40px; }
+.btn { border: 2px solid var(--frame); border-radius: 4px; box-shadow: var(--hard); transition: transform .08s ease, box-shadow .08s ease; }
+.btn:hover { border-color: var(--frame); transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--frame); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--frame); }
+.btn.primary { border-color: var(--frame); }
+.btn.small { box-shadow: 3px 3px 0 var(--frame); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: 3px 3px 0 var(--frame); }
+.btn:focus-visible, .loc:focus-visible .loc-name { outline: 3px solid var(--accent); outline-offset: 2px; }
+button.btn { font: inherit; font-weight: 500; cursor: pointer; }
+.card { border: 2px solid var(--frame); border-radius: 6px; box-shadow: var(--hard); }
+.card:hover { border-color: var(--frame); }
+.label, .status, .tag { border-radius: 3px; }
+.counter { border: 2px solid var(--frame); border-radius: 4px; font-size: 14px; color: var(--text); }
+
+.xp { display: flex; align-items: center; gap: 10px; }
+.xp-bar { width: 120px; height: 14px; border: 2px solid var(--frame); background: var(--surface); }
+.xp-bar i { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--done) 0 9px, transparent 9px 11px); }
+
+/* Map */
+.world { padding: 0; }
+.map {
+  position: relative; width: 100%; height: max(620px, calc(100vh - 63px)); overflow: hidden;
+  border-bottom: 3px solid var(--frame);
+  background: var(--sea); user-select: none; -webkit-user-select: none; touch-action: manipulation;
+}
+.map-svg .stars { opacity: var(--stars); fill: #fff; }
+.map-svg .stars rect { animation: twinkle 3s steps(2) infinite; }
+@keyframes twinkle { 50% { opacity: .25; } }
+.sky-fx { position: absolute; left: 0; right: 0; top: 0; height: 100px; overflow: hidden; pointer-events: none; }
+
+/* Title banner and HUD float over the map */
+.banner, .hud {
+  position: absolute; z-index: 4; background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border: 3px solid var(--frame); border-radius: 6px; box-shadow: 5px 5px 0 var(--frame);
+}
+.banner { top: 18px; left: 18px; width: min(460px, calc(100% - 36px)); padding: 16px 18px 18px; }
+.banner .badge { margin: 0; }
+.banner h1 { font-size: clamp(22px, 2.3vw, 30px); line-height: 1.15; margin: 10px 0 8px; }
+.banner .lede { font-size: 15px; margin: 0 0 6px; color: var(--text); opacity: .85; }
+.banner .byline { margin: 0 0 14px; font-size: 13px; }
+.banner .cta { gap: 10px; }
+.banner .btn { padding: 6px 12px; font-size: 14px; box-shadow: 3px 3px 0 var(--frame); }
+.hud { top: 18px; right: 18px; max-width: 290px; padding: 10px 12px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.hud .map-hint { margin: 0; font-size: 13px; line-height: 1.4; color: var(--muted); text-align: right; }
+.map.narrow .banner { left: 12px; right: 12px; top: 12px; width: auto; }
+.map.narrow .hud { left: 12px; right: 12px; max-width: none; align-items: flex-start; }
+.map.narrow .hud .map-hint { text-align: left; }
+.world-inner { position: absolute; left: 0; top: 0; height: 100%; transform-origin: 0 0; transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
+.map-svg { position: absolute; left: 0; top: 0; display: block; }
+.map-svg .g { fill: var(--ground); }
+.map-svg .tuft { fill: none; stroke: var(--ground-dark); stroke-width: 2; }
+.map-svg .trail-edge { fill: none; stroke: var(--trail-edge); stroke-width: 26; stroke-linecap: round; stroke-linejoin: round; }
+.map-svg .trail { fill: none; stroke: var(--trail); stroke-width: 18; stroke-linecap: round; stroke-linejoin: round; }
+.map-svg .trail.unexplored { stroke-dasharray: 2 14; stroke-width: 10; }
+.map-svg .mt { fill: var(--mt); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.map-svg .sn, .map-svg .cp { fill: var(--cap); }
+.map-svg .rim { fill: var(--rim); }
+.map-svg .dn { fill: var(--ground-dark); }
+.map-svg .ms { fill: #d64545; }
+.map-svg .night { fill: #0a1433; opacity: var(--night); pointer-events: none; }
+.map-svg .ridge .td { stroke: none; }
+.map-svg .wt { fill: var(--water); }
+.map-svg .we { fill: var(--water-edge); }
+.map-svg .ripple { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: 2; stroke-linecap: round; }
+.map-svg .tr { fill: var(--tree); }
+.map-svg .td { fill: var(--tree-dark); }
+.map-svg .tk, .map-svg .dr { fill: var(--trunk); }
+.map-svg .rk { fill: var(--rock); }
+.map-svg .wl { fill: var(--wall); }
+.map-svg .rf, .map-svg .fn { fill: var(--roof); }
+.map-svg .rf2 { fill: var(--roof-2); }
+.map-svg .ac { fill: var(--dome); }
+.map-svg .rkt { fill: var(--rocket); }
+.map-svg .wn { fill: #ffd86b; }
+.map-svg .f1 { fill: var(--f1); }
+.map-svg .f2 { fill: var(--f2); }
+.map-svg .dc .dt { fill: none; stroke: var(--tree-dark); stroke-width: 3; stroke-linecap: round; }
+.map-svg .dc .lv { fill: none; stroke: #ff7a2f; stroke-width: 3; stroke-linejoin: round; }
+.map-svg .nt { fill: none; stroke: var(--ink); stroke-width: 2.5; }
+.map-svg .nh { fill: var(--ink); }
+.map-svg .dc * { stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.map-svg .dc .nostroke * { stroke: none; }
+.map-svg .lm * { stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.map-svg .lm .nt { stroke-width: 2.5; }
+.map-svg .lm.locked { opacity: .6; }
+.map-svg .fog { fill: var(--fog); }
+.map-svg .glow { opacity: var(--glow); }
+
+.map-locs { position: absolute; inset: 0; }
+.loc {
+  position: absolute; z-index: 2; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 0; border: 0; background: none; color: var(--text); font: inherit; cursor: pointer;
+}
+.pin {
+  width: 28px; height: 28px; display: grid; place-items: center; color: #fff; font-size: 14px; font-weight: 600;
+  border: 2px solid var(--ink); border-radius: 3px; box-shadow: 2px 2px 0 rgba(0, 0, 0, .35);
+}
+.released > .pin { background: #2f9e5b; }
+.in-progress > .pin { background: #d4901a; }
+.upcoming > .pin { background: #7b8190; }
+.loc-name {
+  max-width: 150px; padding: 2px 7px; font-size: 14px; font-weight: 500; line-height: 1.2; text-align: center;
+  background: var(--surface); border: 2px solid var(--ink); border-radius: 3px;
+}
+.loc.upcoming .loc-name { color: var(--muted); }
+.loc.here .pin { outline: 3px solid #ffd86b; outline-offset: 1px; animation: hop .9s steps(2) infinite; }
+.loc.here .loc-name { background: #ffd86b; color: #1f1d24; }
+@keyframes hop { 50% { transform: translateY(-3px); } }
+
+.hero-char { position: absolute; z-index: 3; pointer-events: none; transform: translate(-50%, -94%); }
+.hero-char svg { display: block; width: 100%; height: auto; }
+.hero-char.left svg { transform: scaleX(-1); }
+.hero-char.walking .leg-a { animation: step .28s steps(1) infinite; }
+.hero-char.walking .leg-b { animation: step .28s steps(1) infinite reverse; }
+.hero-char.walking .sp-body { animation: bob .28s steps(1) infinite; }
+@keyframes step { 0% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+@keyframes bob { 0% { transform: translateY(0); } 50% { transform: translateY(-.5px); } }
+@media (prefers-reduced-motion: reduce) {
+  .loc.here .pin, .hero-char.walking * { animation: none !important; }
+}
+
+@media (max-width: 600px) {
+  .loc-name { max-width: 120px; font-size: 13px; }
+  .xp-bar { width: 80px; }
+}
+
+/* Nav as a game HUD */
+.nav { background: var(--surface); backdrop-filter: none; border-bottom: 3px solid var(--frame); }
+.nav nav a:not(.pill-link) { font-family: "Pixelify Sans", Inter, sans-serif; font-size: 16px; color: var(--text); }
+.nav nav a:not(.pill-link):hover { color: var(--accent); }
+.nav nav a:not(.pill-link)::before { content: "\25B8"; margin-right: 4px; color: var(--muted); }
+
+/* Clouds over the sky band */
+.cloud { position: absolute; left: 0; fill: var(--cloud); opacity: .95; animation: drift linear infinite; }
+.cloud svg { display: block; width: 100%; height: auto; }
+.cloud.c1 { top: 10px; width: 120px; animation-duration: 70s; animation-delay: -20s; }
+.cloud.c2 { top: 46px; width: 80px; animation-duration: 95s; animation-delay: -60s; opacity: .8; }
+.cloud.c3 { top: 24px; width: 150px; animation-duration: 120s; animation-delay: -95s; opacity: .7; }
+@keyframes drift { from { transform: translateX(-220px); } to { transform: translateX(calc(100vw + 20px)); } }
+@media (prefers-reduced-motion: reduce) { .cloud, .map-svg .stars rect, .npc-box::after { animation: none !important; } }
+
+/* Section headings get a pixel gem */
+h2::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 10px; vertical-align: 2px;
+  background: var(--done); border: 2px solid var(--frame); transform: rotate(45deg); }
+
+/* Quest log under the map */
+.log-title { margin: 32px 0 12px; font-size: 20px; }
+.quest-log { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.quest {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; text-align: left; cursor: pointer;
+  font: inherit; color: var(--text); background: var(--surface); border: 2px solid var(--frame); border-radius: 4px;
+  box-shadow: 3px 3px 0 var(--frame); transition: transform .08s ease, box-shadow .08s ease;
+}
+.quest:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--frame); }
+.quest:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--frame); }
+.quest:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.quest.open { background: #ffd86b; color: #1f1d24; }
+.quest .q-title { flex: 1; font-size: 16px; font-weight: 600; line-height: 1.25; }
+.quest.upcoming .q-title { color: var(--muted); }
+.quest.open .q-title { color: #1f1d24; }
+
+/* Side pop-up card */
+.side {
+  position: fixed; z-index: 20; top: 74px; right: 16px; bottom: 16px; width: min(430px, calc(100vw - 32px));
+  display: flex; flex-direction: column; background: var(--surface);
+  border: 3px solid var(--frame); border-radius: 6px; box-shadow: 6px 6px 0 var(--frame);
+  transform: translateX(calc(100% + 40px)); visibility: hidden;
+  transition: transform .28s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .28s;
+}
+.side.open { transform: none; visibility: visible; transition: transform .28s cubic-bezier(.2, .8, .2, 1); }
+.side-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px 12px 18px; border-bottom: 2px dashed var(--border); }
+.side-where { margin: 0; font-size: 17px; font-weight: 600; }
+.side-close {
+  width: 34px; height: 34px; display: grid; place-items: center; padding: 0; cursor: pointer; font-size: 22px; line-height: 1;
+  color: var(--text); background: var(--surface); border: 2px solid var(--frame); border-radius: 4px; box-shadow: 2px 2px 0 var(--frame);
+}
+.side-close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.side-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 18px; }
+.side-foot { display: flex; justify-content: space-between; gap: 10px; padding: 12px 18px 16px; border-top: 2px dashed var(--border); }
+.side .card, .side .card.pending { border: 0; box-shadow: none; padding: 0; background: transparent; }
+.side .card:hover { transform: none; }
+.side .card h3 { font-size: 22px; }
+@media (prefers-reduced-motion: reduce) { .side, .side.open { transition: none !important; } }
+
+/* Contact as an NPC dialog */
+.npc { display: flex; align-items: flex-end; gap: 20px; max-width: 720px; }
+.npc-portrait { flex: none; width: 104px; padding: 12px 18px 6px; background: linear-gradient(var(--sky-top), var(--sky-bottom));
+  border: 3px solid var(--frame); border-radius: 6px; box-shadow: 4px 4px 0 var(--frame); }
+.npc-portrait svg { display: block; width: 100%; height: auto; }
+.npc-box { position: relative; flex: 1; padding: 16px 20px 20px; background: var(--surface);
+  border: 3px solid var(--frame); border-radius: 6px; box-shadow: 4px 4px 0 var(--frame); }
+.npc-box::after { content: "\25BC"; position: absolute; right: 14px; bottom: 8px; font-size: 12px; color: var(--muted); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.npc-name { margin: 0 0 4px; font-size: 18px; font-weight: 600; color: var(--accent); }
+.contact .npc-box p { color: var(--text); margin: 0; }
+.footer { border-top: 3px dashed var(--border); }
+
+/* Lightbox matches the pixel frames */
+.lightbox img { border: 3px solid var(--frame); border-radius: 6px; }
+
+@media (max-width: 600px) {
+  .side { top: 68px; left: 8px; right: 8px; bottom: 8px; width: auto; }
+  .npc { flex-direction: column; align-items: stretch; }
+  .npc-portrait { width: 88px; }
+}
+
+/* Biomes: each stop's land has its own colours (dark mode adds a night overlay) */
+.map-svg, .bm-meadow { --beach: #f1dfa6; --ground: #a9d574; --ground-dark: #8cbf5a; --tree: #6fb352; --tree-dark: #3f8a3c; --mt: #93ab9c; --cap: #fbfbf7;
+  --rim: #3f8a3c; --rock: #c4beb2; --water: #6cc3e8; --water-edge: #3f97c4; --f1: #ff8fb1; --f2: #fff3a6; }
+.bm-autumn { --beach: #ecd39b; --ground: #cdd27a; --ground-dark: #aeb156; --tree: #f2a93b; --tree-dark: #d0612f; --mt: #a89a86; --cap: #fbfbf7;
+  --rim: #d0612f; --rock: #c4beb2; --water: #6cc3e8; --water-edge: #3f97c4; --f1: #e8742c; --f2: #c9412b; }
+.bm-desert { --beach: #f6e2a8; --ground: #efd593; --ground-dark: #d9b86a; --tree: #5aa05a; --tree-dark: #3f7d43; --mt: #d98a4e; --cap: #f0b07a;
+  --rim: #d9b86a; --rock: #c9a477; --water: #4fc1d9; --water-edge: #2f93ab; --f1: #ff8fb1; --f2: #fff3a6; }
+.bm-snow { --beach: #ffffff; --ground: #eef4f8; --ground-dark: #c9d9e6; --tree: #5f9c74; --tree-dark: #3d7458; --mt: #b9c8d6; --cap: #ffffff;
+  --rim: #dfe9f1; --rock: #aeb9c4; --water: #c4ecfa; --water-edge: #86c3dd; --f1: #ffffff; --f2: #ffffff; }
+.bm-volcano { --beach: #4a3f3d; --ground: #82716c; --ground-dark: #665753; --tree: #5b4636; --tree-dark: #3e2e24; --mt: #4d4245; --cap: #ff7a2f;
+  --rim: #5e504d; --rock: #5a5052; --water: #ff7a2f; --water-edge: #a8361a; --f1: #ff7a2f; --f2: #ffd166; }
+.bm-space { --ground: #c9cfda; --ground-dark: #aeb5c3; --beach: #ece4c8; --tree: #9aa0ad; --tree-dark: #7d8392; --mt: #9aa0ad; --cap: #ffffff;
+  --rim: #9aa0ad; --rock: #8f96a3; --water: #6cc3e8; --water-edge: #3f97c4; --f1: #fff; --f2: #fff; }
+.bm-volcano .ripple { stroke: rgba(255, 220, 120, .7); }
+
+.loc-biome { font-family: "Pixelify Sans", Inter, sans-serif; font-size: 11px; line-height: 1; padding: 2px 6px; border-radius: 3px;
+  color: #fff; background: rgba(20, 20, 30, .55); }
+
+
+/* Ocean, islands and bridges */
+:root { --sea: #5bb6e3; }
+.map-svg .sea { fill: var(--sea); }
+.map-svg .wave { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: 2; stroke-linecap: round; }
+.map-svg .shallow { fill: #8fd6f2; }
+.map-svg .beach { fill: var(--beach); stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; }
+.map-svg .bm-volcano .shallow { fill: #6a9fb8; }
+.map-svg .br-edge { stroke: var(--ink); stroke-width: 26; }
+.map-svg .br-deck { stroke: #7b4f2e; stroke-width: 22; }
+.map-svg .br-planks { stroke: #c99a5d; stroke-width: 18; stroke-dasharray: 6 3; }
+.map-svg .br-rail { fill: none; stroke: var(--ink); stroke-width: 2.5; }
+.map-svg .bridge path { fill: none; }
+.map-svg .bridge .post { fill: #7b4f2e; stroke: var(--ink); stroke-width: 1.5; }
+.map-svg .bridge.broken .br-planks { stroke-dasharray: 6 12; }
+.map-svg .bridge.broken .br-deck, .map-svg .bridge.broken .br-edge { opacity: 0; }
+.map-svg .bridge.broken .br-rail { stroke-dasharray: 8 10; opacity: .7; }
+
+/* Label sides (chosen to stay clear of the bridges) */
+.loc.lbl-br, .loc.lbl-right { transform: none; align-items: flex-start; }
+.loc.lbl-bl, .loc.lbl-left { transform: translateX(-100%); align-items: flex-end; }
+
+/* While a card is open the title and HUD step aside so the whole world shows */
+.banner, .hud { transition: opacity .2s ease; }
+@media (max-width: 999px) { body.side-open .map:not(.narrow) .banner, body.side-open .map:not(.narrow) .hud { opacity: 0; pointer-events: none; } }
+
+
+.banner { width: auto; max-width: min(520px, calc(100% - 36px)); padding: 12px 16px 14px; }
+.banner h1 { margin: 8px 0 12px; }
+.npc-tag { margin: 0 0 6px !important; font-size: 14px; color: var(--muted) !important; }
+
+/* Launch island: dishes, fuel tanks, astronauts and a landing pad */
+.map-svg .pole, .space-scene .pole { fill: none; stroke: var(--ink, #2b2a33); stroke-width: 2; }
+.map-svg .dish, .map-svg .tank { fill: #f4f5f8; }
+.map-svg .stripe { fill: #c8553d; }
+.map-svg .flag, .space-scene .flag { fill: #315efb; stroke: #2b2a33; stroke-width: 1.5; }
+.astro rect { fill: #f4f5f8; stroke: #2b2a33; stroke-width: 1.2; }
+.astro .pack { fill: #aab0bd; }
+.astro .visor { fill: #2b6fd6; }
+.map-svg .pad { fill: #8f96a3; stroke: var(--ink); stroke-width: 2; }
+.map-svg .pad-ring { fill: none; stroke: #ffd86b; stroke-width: 3; }
+.map-svg .pad-h { fill: none; stroke: #fff; stroke-width: 3; }
+.map-svg .lm.bm-space.locked { opacity: .85; }
+.map-svg.launched .rocket-body { visibility: hidden; }
+
+/* Rocket leaving the map */
+.flyer { position: absolute; z-index: 3; width: 52px; height: 140px; pointer-events: none; }
+.flyer svg, .ss-ship svg { display: block; }
+.flame { transform-box: fill-box; transform-origin: 50% 0; animation: flicker .12s steps(2) infinite; }
+@keyframes flicker { 50% { transform: scaleY(.75); } }
+.puff { position: absolute; z-index: 2; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+  background: #f4f4f4; border: 2px solid #c9ccd4; pointer-events: none; animation: puff 1.5s ease-out forwards; }
+@keyframes puff { from { transform: scale(.3); opacity: .95; } to { transform: translate(var(--dx), -16px) scale(1.8); opacity: 0; } }
+
+/* Space scene with the moon */
+.space-scene { position: fixed; z-index: 15; top: 63px; left: 0; right: 0; bottom: 0; overflow: hidden; display: none; }
+.space-scene.on { display: block; }
+.ss-sky { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 20%, #1b2352 0%, transparent 55%),
+  radial-gradient(ellipse at 15% 75%, #1a1740 0%, transparent 50%), #0a0e22; }
+.ss-sky svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ss-sky .tw { animation: twinkle-star 3s ease-in-out infinite; }
+@keyframes twinkle-star { 50% { opacity: .15; } }
+@media (prefers-reduced-motion: reduce) { .ss-sky .tw { animation: none; } }
+/* Earth in space is a WebGL globe drawn from a snapshot of the map */
+.ss-gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.map.leaving .banner, .map.leaving .hud, .map.leaving .map-locs, .map.leaving .sky-fx { opacity: 0; pointer-events: none; transition: opacity .4s; }
+.ss-moon { position: absolute; left: var(--mx); top: var(--my); width: var(--md); aspect-ratio: 1; transform: translate(-50%, -50%); }
+.ss-moon > svg { display: block; width: 100%; height: 100%; }
+.ss-ship { position: absolute; width: 52px; height: 140px; transform-origin: 26px 92px; pointer-events: none; visibility: hidden; }
+.ss-ship.show { visibility: visible; }
+.space-scene.landed .flame { display: none; }
+.ss-crew { position: absolute; left: calc(50% + 34px); top: -60px; transform: scale(0); transform-origin: 50% 100%; transition: transform .35s cubic-bezier(.3, 1.6, .5, 1) .2s; }
+.space-scene.landed .ss-crew { transform: scale(1); }
+.ss-caption { position: absolute; top: calc(var(--my) - var(--md) / 2 - 150px); left: calc(var(--mx) - 220px); width: 440px; margin: 0; text-align: center; color: #fff; opacity: 0;
+  font: 600 clamp(22px, 3vw, 34px) "Pixelify Sans", Inter, sans-serif; text-shadow: 3px 3px 0 #000; transition: opacity .4s ease .3s; }
+.space-scene.landed .ss-caption { opacity: 1; }
+.ss-back { position: absolute; left: 24px; bottom: 24px; }
+@media (prefers-reduced-motion: reduce) { .flame { animation: none; } .ss-crew, .ss-caption { transition: none; } }
+.space-scene:not(.landed) .ss-back { visibility: hidden; }
+
+/* Wide screens: the side panel is always docked to the right (About me or a card) */
+@media (min-width: 1000px) {
+  main { margin-right: calc(min(430px, 100vw - 32px) + 32px); }
+  .side { transform: none; visibility: visible; transition: none; }
+  .side.about .side-close { visibility: hidden; }
+  .about-section { display: none; }
+}
+
+/* About me */
+.about-me h3 { margin: 0; font: 600 22px "Pixelify Sans", Inter, sans-serif; }
+.about-top { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.about-portrait { flex: none; width: 76px; padding: 10px 14px 4px; background: linear-gradient(var(--sky-top), var(--sky-bottom));
+  border: 3px solid var(--frame); border-radius: 6px; box-shadow: 3px 3px 0 var(--frame); }
+.about-portrait svg { display: block; width: 100%; height: auto; }
+.about-tag { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.about-text { margin: 0 0 16px; line-height: 1.6; }
+.about-facts { list-style: none; margin: 0 0 16px; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.about-facts li { padding: 8px 10px; border: 2px solid var(--frame); border-radius: 4px; background: var(--bg); display: flex; flex-direction: column; gap: 2px; }
+.about-facts b { font: 600 17px "Pixelify Sans", Inter, sans-serif; }
+.about-facts span { font-size: 12px; color: var(--muted); line-height: 1.3; }
+.about-hint { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
+.about-hint::before { content: "\25B8 "; color: var(--done); }
+.about-me .links { margin-top: 0; gap: 10px; }
+.about-section { padding: 32px 0 8px; }
+.about-section .about-me { background: var(--surface); border: 3px solid var(--frame); border-radius: 6px; box-shadow: 5px 5px 0 var(--frame); padding: 18px 20px; }
+
+/* Future-project islets */
+.map-svg .stone { fill: #c9c2b4; stroke: var(--ink); stroke-width: 1.2; }
+.map-svg .islet .post { fill: #7b4f2e; }
+.map-svg .islet .sign { fill: #e8c48c; stroke: var(--ink); stroke-width: 1.5; }
+.map-svg .islet .tent { fill: #c8553d; stroke: var(--ink); stroke-width: 1.5; }
+.islet-tag { position: absolute; z-index: 2; transform: translateX(-50%); white-space: nowrap; padding: 1px 6px; border-radius: 3px;
+  font: 500 11px "Pixelify Sans", Inter, sans-serif; color: #fff; background: rgba(20, 20, 30, .55); text-decoration: none; }
+a.islet-tag:hover { background: rgba(20, 20, 30, .8); text-decoration: none; }

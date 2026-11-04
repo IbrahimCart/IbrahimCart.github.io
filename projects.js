@@ -6,6 +6,8 @@
 //  - New class later: add another { ... } block to COURSES.
 //    The FIRST course in the list is featured at the top.
 //  - Personal / side projects: add them to PROJECTS.
+//  - Optional: biome: "space" (or meadow, autumn, desert, snow,
+//    volcano) picks the island an artifact sits on in the world map.
 // ============================================================
 
 const PROFILE = {
@@ -13,7 +15,9 @@ const PROFILE = {
   tagline: "Computer Science student at the University of Washington",
   github: "https://github.com/IbrahimCart",
   email: "okrioaks@uw.edu",
-  linkedin: "" // e.g. "https://www.linkedin.com/in/your-name"
+  linkedin: "", // e.g. "https://www.linkedin.com/in/your-name"
+  // Shown in the About me panel when no island is selected. Write it in your own words.
+  about: "Hi! I'm Ibrahim, a Computer Science student at the University of Washington. I like building practical tools that people actually use, like a Discord music bot, an AI code reviewer and an iPhone reminder app I made for my mom. This world is my TCSS 490 portfolio: every island is a project, and new ones will appear as I build them."
 };
 
 const COURSES = [
@@ -83,6 +87,7 @@ const COURSES = [
       {
         title: "The Moonshot",
         status: "upcoming",
+        biome: "space", // launch island: clicking it flies a rocket to the moon
         week: null,
         summary: "Course plan: a five-week project, solo or with a team, bigger than anything I have built before and ideally deployed where real users can reach it. Due Sun Dec 13.",
         tags: [], repo: "", demo: ""

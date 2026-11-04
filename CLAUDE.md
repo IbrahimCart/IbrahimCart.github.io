@@ -8,7 +8,7 @@ Course portfolio for **TCSS 490: Generative AI and Software Development** (UW, A
 ## Files
 
 - `projects.js`: all content. `PROFILE`, `COURSES` (first course is featured in the header/hero; TCSS 490 has 5 artifacts) and `PROJECTS` (personal projects; "Other Projects" section appears once non-empty).
-- `main.js`: renders everything from `projects.js` (cards, status badges, image slideshow).
+- `main.js`: renders everything from `projects.js` (cards, status badges, image slideshow). The featured course is a full-screen video-game world at the top of the page: an ocean with a central hub island for Artifact 1 (the portfolio) and one island per other artifact scattered irregularly around it (stacked above/below the hub on phones), each in its own biome and joined to the hub by a bridge (broken planks lead to locked ones). Small islets reached by stepping stones are placeholders for future projects (named after `PROJECTS` entries once added). A pixel traveler walks the bridges toward the cursor, always via the hub. On wide screens (1000px+) a side panel is always docked on the right: it shows About me (`PROFILE.about`) until a landmark or quest-log row is clicked, then that artifact's card; on smaller screens About me is a section under the map and cards slide in. The Moonshot uses `biome: "space"`: an astronaut launch island where clicking plays a rocket launch; a WebGL camera pulls back from the flat map (a snapshot of the SVG) until it is a lit, slowly rotating 3D Earth with half of it on screen, the rocket lands on a small moon, and the card opens ("Back to Earth" plays it in reverse). Scenery is generated from a fixed seed, so it looks the same on every visit.
 - `styles.css`: light/dark themes (`prefers-color-scheme` plus a `data-theme` toggle).
 - `index.html`: layout shell; scripts are loaded with a `?v=Date.now()` cache-buster.
 - `LOG.md`: the prompt log the course requires. Add an entry per artifact/week using its template.
@@ -28,3 +28,4 @@ Upcoming cards hold the course plan as placeholder text until released.
 
 - Never overwrite or remove existing cards. Release an artifact by editing its own entry (`status: "released"`, title, summary, tags, repo, week).
 - Always start from the latest `main` (`git pull`) before making changes.
+- Local preview: `python3 .claude/devserver.py 8490` serves the site at http://localhost:8490 and reloads the page whenever a file changes (dev-only, not part of the site).

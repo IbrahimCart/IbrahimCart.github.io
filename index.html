@@ -8,15 +8,16 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23315efb'/><text x='16' y='22' font-family='Arial' font-size='16' font-weight='700' fill='white' text-anchor='middle'>IC</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pixelify+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
   <header class="nav">
     <div class="wrap nav-inner">
       <a href="#top" class="logo"><span class="logo-mark">IC</span><span class="logo-text"><b id="nav-name"></b><small id="nav-course" class="mono"></small></span></a>
       <nav>
-        <a href="#courses">Courses</a>
+        <a href="#top">Map</a>
+        <a href="#quests">Quests</a>
         <a href="#contact">Contact</a>
         <a class="pill-link" id="nav-log" target="_blank" rel="noopener">LOG.md</a>
         <button id="theme" class="theme-btn" aria-label="Toggle dark mode"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
@@ -24,32 +25,51 @@
     </div>
   </header>
 
-  <main id="top" class="wrap">
-    <section class="hero">
-      <p class="badge"><span class="dot"></span><span id="hero-badge"></span></p>
-      <h1 id="hero-title"></h1>
-      <p class="lede" id="hero-desc"></p>
-      <p class="byline" id="hero-byline"></p>
-      <div class="cta">
-        <a class="btn primary" id="hero-log" target="_blank" rel="noopener">View Prompt Log (LOG.md)</a>
-        <a class="btn" id="hero-repo" target="_blank" rel="noopener">GitHub Repository</a>
+  <main>
+    <section class="world" id="top" aria-label="Quest map">
+      <div class="map">
+        <div class="world-inner">
+          <svg class="map-svg" aria-hidden="true" focusable="false"></svg>
+          <div class="map-locs"></div>
+          <div class="hero-char" aria-hidden="true"></div>
+        </div>
+        <div class="sky-fx" aria-hidden="true"></div>
+        <div class="banner">
+          <p class="badge"><span class="dot"></span><span id="hero-badge"></span></p>
+          <h1 id="hero-title"></h1>
+          <div class="cta">
+            <a class="btn" id="hero-log" target="_blank" rel="noopener">Prompt Log (LOG.md)</a>
+            <a class="btn" id="hero-repo" target="_blank" rel="noopener">GitHub Repository</a>
+          </div>
+        </div>
+        <div class="hud" id="hud"></div>
       </div>
     </section>
 
-    <div id="courses"></div>
-    <div id="other"></div>
+    <div class="wrap">
+      <section id="about" class="about-section" aria-label="About me"></section>
+      <div id="courses"></div>
+      <div id="other"></div>
 
-    <section id="contact" class="contact">
-      <h2>Contact</h2>
-      <p>Questions about a project? Reach me here.</p>
-      <div class="links" id="links"></div>
-    </section>
+      <section id="contact" class="contact">
+        <h2>Contact</h2>
+        <div class="npc">
+          <div class="npc-portrait" id="npc-portrait" aria-hidden="true"></div>
+          <div class="npc-box">
+            <p class="npc-name" id="npc-name"></p>
+            <p class="npc-tag" id="npc-tag"></p>
+            <p>Questions about a project? Reach me here.</p>
+            <div class="links" id="links"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="wrap footer">
+      <span>© <span id="year"></span> Ibrahim Cartan</span>
+      <span>Thanks for playing · Hosted on GitHub Pages</span>
+    </footer>
   </main>
-
-  <footer class="wrap footer">
-    <span>© <span id="year"></span> Ibrahim Cartan</span>
-    <span>Hosted on GitHub Pages</span>
-  </footer>
 
   <!-- Load with a changing query string so browsers never reuse a stale copy after an update -->
   <script>
