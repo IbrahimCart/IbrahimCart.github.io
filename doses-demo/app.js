@@ -295,6 +295,7 @@
   // Shrink the whole phone to fit narrow windows, so it still looks like an iPhone.
   // The phone keeps the same physical size at every browser zoom. Zooming enlarges everything by the zoom
   // factor, so the phone is scaled by its inverse. (Only a window narrower than the phone makes it shrink.)
+  const PHONE_SIZE = 0.95; // the phone's size on screen, as a fraction of its full 384 x 816 design
   const ZOOM_LEVELS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
   function browserZoom() {
     if (window.__dosesZoom) return window.__dosesZoom; // lets tests set a zoom
@@ -306,7 +307,7 @@
   function fitPhone() {
     const host = $("#phone-wrap").parentElement, cs = getComputedStyle(host);
     const avail = host.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    const scale = Math.min(1 / browserZoom(), avail / 384);
+    const scale = Math.min(PHONE_SIZE / browserZoom(), avail / 384);
     document.documentElement.style.setProperty("--phone-scale", scale);
   }
   window.addEventListener("resize", fitPhone);
