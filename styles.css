@@ -20,6 +20,9 @@
   --rock: #c4beb2; --wall: #f6ead0; --roof: #c8553d; --roof-2: #4f74d1; --dome: #8e6bd8; --rocket: #eef0f4;
   --mountain: #93ab9c; --snow: #fbfbf7; --ink: #2b2a33; --fog: rgba(255, 255, 255, .82); --glow: 0; --night: 0;
   --sky-top: #7cc8f5; --sky-bottom: #d6f0ff; --hill: #8cc66a; --cloud: #ffffff; --stars: 0;
+  --sk1: #4ea9ec; --sk2: #8fd0f6; --sk3: #d3efff; --csky1: #3d9be6; --csky2: #8cd0f7; --csky3: #e4f6ff; --csea1: #58b4e2; --csea2: #3f8fc0;
+  --dip-line: rgba(43, 42, 51, .55); --dstar-fx: drop-shadow(0 0 1.5px #2b2a33) drop-shadow(0 0 8px rgba(255, 196, 40, .9)); --sky-note: #ffffff; --spark: #ffb81c; --spark-core: #fff3b0;
+  --space-bg: linear-gradient(#d2561f, #ff8f45 55%, #ffc474); --space-stars: .22; --eclipse-fx: brightness(.26) saturate(.5) drop-shadow(0 0 4px #ffe9a8); --corona: 1;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -30,6 +33,12 @@
     --plan: #a1a7b3; --plan-bg: #20242b;
     --ink: #07090d; --fog: rgba(16, 20, 30, .7); --glow: 1; --night: .52;
     --sky-top: #070b1d; --sky-bottom: #1d2a52; --hill: #1e3a2b; --cloud: #2a3658; --stars: 1;
+  --sk1: #050818; --sk2: #121c52; --sk3: #26407e; --csky1: #050818; --csky2: #0d1336; --csky3: #1a2556; --csea1: #173a62; --csea2: #0d2440;
+  --dip-line: rgba(255, 244, 194, .55); --dstar-fx: drop-shadow(0 0 10px rgba(255, 220, 120, .95)); --sky-note: #c9d2f5; --spark: #fff4c2; --spark-core: #fff;
+  --space-bg: radial-gradient(ellipse at 70% 20%, #1b2352 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, #1a1740 0%, transparent 50%), #0a0e22; --space-stars: 1; --eclipse-fx: none; --corona: 0;
+    --sk1: #050818; --sk2: #121c52; --sk3: #26407e; --csky1: #050818; --csky2: #0d1336; --csky3: #1a2556; --csea1: #173a62; --csea2: #0d2440;
+    --dip-line: rgba(255, 244, 194, .55); --dstar-fx: drop-shadow(0 0 10px rgba(255, 220, 120, .95)); --sky-note: #c9d2f5; --spark: #fff4c2; --spark-core: #fff;
+  --space-bg: radial-gradient(ellipse at 70% 20%, #1b2352 0%, transparent 55%), radial-gradient(ellipse at 15% 75%, #1a1740 0%, transparent 50%), #0a0e22; --space-stars: 1; --eclipse-fx: none; --corona: 0;
   }
 }
 :root[data-theme="dark"] {
@@ -474,9 +483,8 @@ h2::before { content: ""; display: inline-block; width: 12px; height: 12px; marg
 /* Space scene with the moon */
 .space-scene { position: fixed; z-index: 15; top: 63px; left: 0; right: 0; bottom: 0; overflow: hidden; display: none; }
 .space-scene.on { display: block; }
-.ss-sky { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 20%, #1b2352 0%, transparent 55%),
-  radial-gradient(ellipse at 15% 75%, #1a1740 0%, transparent 50%), #0a0e22; }
-.ss-sky svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ss-sky { position: absolute; inset: 0; background: var(--space-bg); }
+.ss-sky svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: var(--space-stars); }
 .ss-sky .tw { animation: twinkle-star 3s ease-in-out infinite; }
 @keyframes twinkle-star { 50% { opacity: .15; } }
 @media (prefers-reduced-motion: reduce) { .ss-sky .tw { animation: none; } }
@@ -485,12 +493,16 @@ h2::before { content: ""; display: inline-block; width: 12px; height: 12px; marg
 .map.leaving .banner, .map.leaving .hud, .map.leaving .map-locs, .map.leaving .sky-fx { opacity: 0; pointer-events: none; transition: opacity .4s; }
 .ss-moon { position: absolute; left: var(--mx); top: var(--my); width: var(--md); aspect-ratio: 1; transform: translate(-50%, -50%); }
 .ss-moon > svg { display: block; width: 100%; height: 100%; }
+/* In light mode the trip is a solar eclipse: an orange sky with the sun already in place, and the moon slides in dark in front of it, leaving a glowing corona. */
+.ss-moon > svg:first-child { filter: var(--eclipse-fx); }
+.ss-sun { position: absolute; left: var(--mx); top: var(--my); width: calc(var(--md) * 2.24); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; opacity: var(--corona);
+  background: radial-gradient(circle closest-side, #fffbe0 0 43%, rgba(255, 238, 170, .98) 44.5%, rgba(255, 190, 90, .6) 58%, rgba(255, 130, 50, .22) 78%, rgba(255, 120, 40, 0) 100%); }
 .ss-ship { position: absolute; width: 52px; height: 140px; transform-origin: 26px 92px; pointer-events: none; visibility: hidden; }
 .ss-ship.show { visibility: visible; }
 .space-scene.landed .flame { display: none; }
 .ss-crew { position: absolute; left: 50%; top: 50%; transform: scale(0); transform-origin: 50% 100%; transition: transform .35s cubic-bezier(.3, 1.6, .5, 1) .2s; }
-.ss-moon > .ss-astro { width: 30px; height: 39px; margin: 0; translate: var(--ax) calc(var(--ay) - 39px); rotate: var(--ar); }
-.ss-moon > .ss-flag { width: 33px; height: 54px; translate: var(--fx) calc(var(--fy) - 54px); rotate: var(--fr); transform-origin: 9% 100%; }
+.ss-moon > .ss-astro { width: calc(30px * var(--k, 1)); height: calc(39px * var(--k, 1)); margin: 0; translate: var(--ax) calc(var(--ay) - 39px * var(--k, 1)); rotate: var(--ar); }
+.ss-moon > .ss-flag { width: calc(33px * var(--k, 1)); height: calc(54px * var(--k, 1)); translate: var(--fx) calc(var(--fy) - 54px * var(--k, 1)); rotate: var(--fr); transform-origin: 9% 100%; }
 .space-scene.landed .ss-crew { transform: scale(1); }
 .ss-caption { position: absolute; top: calc(var(--my) - var(--md) / 2 - 150px); left: calc(var(--mx) - 220px); width: 440px; margin: 0; text-align: center; color: #fff; opacity: 0;
   font: 600 clamp(22px, 3vw, 34px) "Pixelify Sans", Inter, sans-serif; text-shadow: 3px 3px 0 #000; transition: opacity .4s ease .3s; }
@@ -603,9 +615,11 @@ a.islet-tag:hover { background: rgba(20, 20, 30, .8); text-decoration: none; }
 /* ---- Contact: the Big Dipper ---- */
 .dipper { position: relative; aspect-ratio: 2 / 1; }
 .dipper-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.dipper-lines polyline { fill: none; stroke: rgba(255, 244, 194, .55); stroke-width: .5;
+.dipper-lines polyline { fill: none; stroke: var(--dip-line); stroke-width: .5;
   stroke-dasharray: 1; stroke-dashoffset: 0; stroke-linejoin: round; }
 .dstar { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; text-decoration: none; }
+.dstar svg path { fill: var(--spark); }
+.dstar svg circle { fill: var(--spark-core); }
 .dstar svg { display: block; width: 18px; height: 18px; filter: drop-shadow(0 0 4px rgba(255, 233, 160, .9));
   animation: star-pulse var(--t, 3s) ease-in-out var(--d, 0s) infinite; }
 .dstar.alcor svg { width: 8px; height: 8px; }
@@ -624,19 +638,22 @@ a.islet-tag:hover { background: rgba(20, 20, 30, .8); text-decoration: none; }
 
 /* The night sky the page pans up to */
 .sky-scene { position: fixed; z-index: 25; top: 63px; left: 0; right: 0; bottom: 0; overflow: hidden; display: none;
-  background: linear-gradient(#050818, #0d1336 55%, #1a2556); }
+  background: linear-gradient(var(--csky1), var(--csky2) 55%, var(--csky3)); }
 .sky-scene.on { display: block; }
-.sky-scene .ss-sky { background: none; }
+.sky-scene .ss-sky { background: none; opacity: var(--stars); }
+/* By day the Contact sky is blue with a sun instead of stars; the Dipper's stars stay as golden sparkles. */
+.sky-scene::before { content: ""; position: absolute; top: 9%; right: 11%; width: 86px; height: 86px; border-radius: 50%; border: 4px solid #2b2a33;
+  background: radial-gradient(circle, #fff6b8 0 45%, #ffd84a 46% 100%); box-shadow: 0 0 0 8px rgba(255, 214, 74, .35), 0 0 60px 24px rgba(255, 230, 130, .65); opacity: calc(1 - var(--stars)); }
 .sky-sea { position: absolute; left: 0; right: 0; bottom: 0; height: 70px;
-  background: linear-gradient(#173a62, #0d2440); border-top: 3px solid #2b2a33; }
+  background: linear-gradient(var(--csea1), var(--csea2)); border-top: 3px solid #2b2a33; }
 .sky-head { position: absolute; top: 7%; left: 0; right: 0; text-align: center; color: #fff; }
 .sky-head h2 { margin: 0; font-size: clamp(28px, 4vw, 44px); text-shadow: 3px 3px 0 #000; }
 .sky-head h2::before { display: none; }
-.sky-head p { margin: 8px 16px 0; color: #c9d2f5; font-size: 16px; opacity: 0; transition: opacity .6s .6s; }
+.sky-head p { margin: 8px 16px 0; color: var(--sky-note); text-shadow: 1px 1px 0 rgba(0, 0, 0, .55); font-size: 16px; opacity: 0; transition: opacity .6s .6s; }
 .dipper.big { position: absolute; left: 50%; top: 52%; width: min(880px, 82vw); transform: translate(-50%, -50%); }
 .dipper.big .dipper-lines polyline { stroke-dashoffset: 1; transition: stroke-dashoffset 1.6s ease-out; }
 .dipper.big .dstar svg { width: 22px; height: 22px; }
-.dipper.big .dstar.link svg { width: clamp(34px, 4.5vw, 48px); height: clamp(34px, 4.5vw, 48px); filter: drop-shadow(0 0 10px rgba(255, 220, 120, .95)); }
+.dipper.big .dstar.link svg { width: clamp(34px, 4.5vw, 48px); height: clamp(34px, 4.5vw, 48px); filter: var(--dstar-fx); }
 .dipper.big .dstar.alcor svg { width: 10px; height: 10px; }
 .dlabel { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 10px; border-radius: 4px;
   font: 600 15px "Pixelify Sans", Inter, sans-serif; color: #1f1d24; background: #ffd86b; border: 2px solid #2b2a33;
@@ -671,6 +688,10 @@ a.dstar:focus-visible .dlabel { outline: 3px solid #fff; outline-offset: 2px; }
 
 /* Wrapper that lets the drifting Dipper fade in and out at the edges */
 .dipper.mini .dfade { position: absolute; inset: 0; display: block; }
+/* By day the stars give way to a sun that drifts across the strip the same way (clicking it still opens Contact). */
+.dipper.mini .dfade > * { opacity: var(--stars); }
+.dipper.mini .dfade::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 3px solid var(--ink);
+  background: radial-gradient(circle, #fff6b8 0 45%, #ffd84a 46% 100%); box-shadow: 0 0 0 5px rgba(255, 214, 74, .35), 0 0 30px 10px rgba(255, 230, 130, .65); opacity: calc(1 - var(--stars)); }
 
 /* Compact title banner so a strip of night sky shows beneath it */
 @media (min-width: 760px) {

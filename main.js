@@ -846,12 +846,12 @@
         `${items.filter((it) => it[1] === i).map((it) => it[2]).join("")}${fog[i]}</g>`).join("");
 
       svg.innerHTML = `
-        <defs><linearGradient id="nightsky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${f(e0 + sag)}"><stop offset="0" stop-color="#050818"/><stop offset=".75" stop-color="#121c52"/><stop offset="1" stop-color="#26407e"/></linearGradient>
+        <defs><linearGradient id="nightsky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${f(e0 + sag)}"><stop offset="0" style="stop-color:var(--sk1)"/><stop offset=".75" style="stop-color:var(--sk2)"/><stop offset="1" style="stop-color:var(--sk3)"/></linearGradient>
           <radialGradient id="limb" gradientUnits="userSpaceOnUse" cx="${f(planet.x)}" cy="${f(planet.y)}" r="${f(planet.r)}"><stop offset=".86" stop-color="#0a1432" stop-opacity="0"/><stop offset="1" stop-color="#0a1432" stop-opacity=".3"/></radialGradient>
           <radialGradient id="lamp"><stop offset="0" stop-color="#ffd86b" stop-opacity=".5"/><stop offset="1" stop-color="#ffd86b" stop-opacity="0"/></radialGradient></defs>
         <g class="skyband">
           <rect width="${W}" height="${H}" fill="url(#nightsky)"/>
-          <g class="far-stars">${(() => {
+          <g class="far-stars" style="opacity:var(--stars)">${(() => {
             // Far stars drift with the Dipper but slower (they're further away); two copies wrap around.
             const stars = Array.from({ length: Math.round(W * (e0 + sag) / 2200) }, () =>
               `<rect class="${rnd() < .25 ? "tw" : ""}" x="${f(rnd() * W)}" y="${f(rnd() * (e0 + sag))}" width="${rnd() < .12 ? 3 : 2}" height="${rnd() < .12 ? 3 : 2}" fill="#fff" opacity="${f(.3 + rnd() * .6)}" style="animation-delay:${f(rnd() * 3)}s"/>`).join("");
@@ -1137,6 +1137,7 @@
     scene.className = "space-scene";
     scene.innerHTML = `
       <div class="ss-sky" aria-hidden="true">${starField(2026)}</div>
+      <div class="ss-sun" aria-hidden="true"></div>
       <div class="ss-moon" aria-hidden="true">
         ${moonSVG()}
         <svg class="ss-crew ss-astro" viewBox="-10 -26 20 26" width="30" height="39">${ASTRO(0, 0)}</svg>
@@ -1178,12 +1179,24 @@
       scene.classList.add("on");
       const moon = scene.querySelector(".ss-moon");
       const below = `translate(-50%, -50%) translateY(${sky.sh}px)`;
+      const sun = scene.querySelector(".ss-sun");
       moon.animate([{ transform: below }], { duration: 1, fill: "forwards" });
+      // By day the moon is pale grey out in space and only darkens as it slides in front of the sun.
+      const moonBody = moon.firstElementChild;
+      if (!reduce.matches) {
+        sun.animate([{ translate: `0 ${sky.sh}px` }], { duration: 1, fill: "forwards" });
+        moonBody.animate([{ filter: "none" }], { duration: 1, fill: "forwards" });
+      }
       await Promise.all([
         // The globe starts moving while it fades in over the identical map, so there is no still frame to notice.
         play(scene, [{ opacity: 0 }, { opacity: 1 }], { duration: earth.ok ? 700 : 500, easing: "ease-in-out" }),
         zoomOut(),
-        wait(reduce.matches ? 0 : 1200).then(() => play(moon, [{ transform: below }, { transform: "translate(-50%, -50%)" }], { duration: 1200, easing: "ease-out" }))
+        // The camera tilts up toward the sun: it rises into place first, then the moon follows it in.
+        play(sun, [{ translate: `0 ${sky.sh}px` }, { translate: "0 0" }], { duration: 1700, easing: "cubic-bezier(.25, .6, .3, 1)" }),
+        wait(reduce.matches ? 0 : 1100).then(() => Promise.all([
+          play(moon, [{ transform: below }, { transform: "translate(-50%, -50%)" }], { duration: 1300, easing: "ease-out" }),
+          play(moonBody, [{ filter: "none" }, { filter: "var(--eclipse-fx)" }], { duration: 1300, easing: "ease-in" })
+        ]))
       ]);
       if (run !== launchRun) return;
       // The rocket rises from the launch island on the globe and lands on the moon.
@@ -1202,8 +1215,10 @@
     function spaceLayout() {
       const free = shownWidth(), sh = innerHeight - navH();
       const gd = Math.round(Math.min(free * .78, sh * 1.2));
-      const md = Math.round(Math.max(140, Math.min(300, Math.min(free, sh) * .32)));
-      sky = { free, sh, gx: free * .3, gy: sh, gd, mx: free * .72, my: sh * .38, md };
+      const md = Math.round(Math.max(110, Math.min(215, Math.min(free, sh) * .24)));   // smaller moon and sun, so there's room to pan
+      const k = md / 205;   // the crew and rocket shrink with the moon
+      sky = { free, sh, gx: free * .3, gy: sh, gd, mx: free * .72, my: sh * .38, md, k };
+      scene.style.setProperty("--k", k);
       for (const k of ["free", "gx", "gy", "gd", "mx", "my", "md"]) scene.style.setProperty("--" + k, sky[k] + "px");
       // The moon's visible radius. The crew stand on the circle itself: each sits where the
       // surface is at its own sideways offset, turned to stand upright on the curve.
@@ -1214,8 +1229,8 @@
         scene.style.setProperty("--" + k + "y", y + "px");
         scene.style.setProperty("--" + k + "r", Math.asin(f) * 180 / Math.PI + "deg");
       };
-      stand("a", .4, -15);     // astronaut, right of the rocket (svg is 30px wide)
-      stand("f", .66, -3);     // flag planted right beside the astronaut (pole sits 3px in from the svg's left edge)
+      stand("a", .4, -15 * k);     // astronaut, right of the rocket (svg is 30px wide)
+      stand("f", .66, -3 * k);     // flag planted right beside the astronaut (pole sits 3px in from the svg's left edge)
     }
     const VERT = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
     // Storybook look to match the map: crisp, gently shaded, lit from the moon's side,
@@ -1272,7 +1287,7 @@
         const cv = document.createElement("canvas");
         cv.className = "ss-gl";
         cv.setAttribute("aria-hidden", "true");
-        scene.querySelector(".ss-sky").after(cv);
+        scene.querySelector(".ss-sun").after(cv);   // above the sky and sun, below the moon: the sun must never paint over Earth
         const gl = cv.getContext("webgl", { premultipliedAlpha: false, antialias: true });
         const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
           if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
@@ -1494,7 +1509,7 @@
           deg = deg > 180 ? deg - 360 : deg;
           deg = deg * (1 - w);
         }
-        const scale = land ? .35 + .4 * e : .75 - .5 * e;
+        const scale = (land ? .35 + .4 * e : .75 - .5 * e) * sky.k;
         const alpha = land ? Math.min(1, e * 6) : Math.min(1, (1 - e) * 6);
         placeShip(x, y, deg, scale, alpha);
       };
@@ -1524,6 +1539,8 @@
       if (run !== launchRun) return;
       await Promise.all([
         play(scene.querySelector(".ss-moon"), [{ transform: "translate(-50%, -50%)" }, { transform: `translate(-50%, -50%) translateY(${sky.sh}px)` }], { duration: 900, easing: "ease-in" }),
+        play(scene.querySelector(".ss-moon").firstElementChild, [{ filter: "var(--eclipse-fx)" }, { filter: "none" }], { duration: 900, easing: "ease-in" }),
+        wait(reduce.matches ? 0 : 400).then(() => play(scene.querySelector(".ss-sun"), [{ translate: "0 0" }, { translate: `0 ${sky.sh}px` }], { duration: 1500, easing: "ease-in" })),
         zoomIn()
       ]);
       if (run !== launchRun) return;
