@@ -704,3 +704,13 @@ a.dstar:focus-visible .dlabel { outline: 3px solid #fff; outline-offset: 2px; }
 
 /* Layering in the sky: stars of the Dipper, then clouds, then the title and HUD */
 .dipper.mini { z-index: 2; }
+
+/* Email card: shown instead of launching the visitor's mail app */
+.email-card { border: 2px solid var(--frame); border-radius: 6px; box-shadow: var(--hard); background: var(--surface); color: var(--text);
+  padding: 22px 24px; width: min(420px, 92vw); }
+.email-card::backdrop { background: rgba(0, 0, 0, .6); }
+.email-card h3 { margin: 0 0 12px; font-size: 22px; }
+.email-card .em-addr { margin: 0 0 18px; padding: 12px 14px; font-size: clamp(15px, 4.4vw, 19px); word-break: break-all; user-select: all;
+  background: var(--accent-soft); border: 2px solid var(--border); border-radius: 4px; }
+.email-card .em-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.email-card .btn { cursor: pointer; font-family: inherit; }

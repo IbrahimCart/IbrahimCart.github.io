@@ -245,6 +245,38 @@
     if (e.key === "ArrowRight") { e.preventDefault(); lbShow(lb.i + 1); }
   });
 
+  // Email: clicking any mailto link (the About panel's Email button, the Contact sky's Email star)
+  // shows a card with the address instead of launching the visitor's mail app.
+  const mailBox = document.createElement("dialog");
+  mailBox.className = "email-card";
+  mailBox.setAttribute("aria-label", "Email address");
+  mailBox.innerHTML = '<h3>Email me</h3><p class="em-addr mono"></p>' +
+    '<div class="em-actions"><button type="button" class="btn small primary em-copy">Copy address</button>' +
+    '<button type="button" class="btn small em-close">Close</button></div>';
+  document.body.appendChild(mailBox);
+  const emCopy = mailBox.querySelector(".em-copy"), emAddr = mailBox.querySelector(".em-addr");
+  let emTimer = 0;
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest && e.target.closest('a[href^="mailto:"]');
+    if (!a) return;
+    e.preventDefault();
+    emAddr.textContent = decodeURIComponent(a.getAttribute("href").slice(7).split("?")[0]);
+    clearTimeout(emTimer);
+    emCopy.textContent = "Copy address";
+    if (!mailBox.open) mailBox.showModal();
+  });
+  mailBox.addEventListener("click", (e) => {
+    if (e.target === mailBox || e.target.classList.contains("em-close")) mailBox.close();
+    else if (e.target === emCopy) {
+      const done = () => { emCopy.textContent = "Copied!"; emTimer = setTimeout(() => { emCopy.textContent = "Copy address"; }, 1800); };
+      (navigator.clipboard ? navigator.clipboard.writeText(emAddr.textContent) : Promise.reject()).then(done, () => {
+        const r = document.createRange(); r.selectNodeContents(emAddr);   // no clipboard access: select it so Ctrl/Cmd+C works
+        getSelection().removeAllRanges(); getSelection().addRange(r);
+        emCopy.textContent = "Press Ctrl/Cmd+C";
+      });
+    }
+  });
+
   // Slideshows (no autoplay; arrows, dots and left/right keys)
   document.querySelectorAll(".slideshow").forEach((ss) => {
     const slides = [...ss.querySelectorAll(".ss-slide")];
@@ -1131,7 +1163,7 @@
       document.querySelector(link.getAttribute("href"))?.scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth" });
     }));
     skyEl.querySelector(".sky-back").addEventListener("click", panBack);
-    addEventListener("keydown", (e) => { if (e.key === "Escape" && skyOn && !document.querySelector(".lightbox[open]")) panBack(); });
+    addEventListener("keydown", (e) => { if (e.key === "Escape" && skyOn && !document.querySelector(".lightbox[open], .email-card[open]")) panBack(); });
 
     const scene = document.createElement("div");
     scene.className = "space-scene";
@@ -1714,7 +1746,7 @@
     addEventListener("wheel", noScroll, { passive: false });
     addEventListener("touchmove", noScroll, { passive: false });
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && shown >= 0 && !document.querySelector(".lightbox[open]")) closeCard();
+      if (e.key === "Escape" && shown >= 0 && !document.querySelector(".lightbox[open], .email-card[open]")) closeCard();
     });
     $("map-hint").textContent = canHover
       ? "Move your cursor to walk across the bridges. Click a landmark to open its card."

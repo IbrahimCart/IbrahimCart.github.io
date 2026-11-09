@@ -14,7 +14,7 @@ const PROFILE = {
   name: "Ibrahim Cartan",
   tagline: "Computer Science student at the University of Washington",
   github: "https://github.com/IbrahimCart",
-  email: "okrioaks@uw.edu",
+  email: "Ibrahim.Cartan@outlook.com",
   linkedin: "https://www.linkedin.com/in/ibrahimcartan/",
   handshake: "https://app.joinhandshake.com/profiles/any5za",
   // Shown in the About me panel when no island is selected. Write it in your own words.
