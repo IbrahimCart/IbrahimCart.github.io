@@ -102,6 +102,7 @@ button, input, textarea { font: inherit; }
 .btn-big:disabled { background: #e0e0e0; color: #9a9a9a; cursor: not-allowed; }
 .link { background: none; border: 0; padding: 4px 0; font-size: 17px; cursor: pointer; color: var(--green); }
 .link.danger { color: var(--red); }
+.undo { width: 100%; min-height: 44px; border: 1.5px solid var(--red); border-radius: 12px; background: #fff; color: var(--red); font-size: 16px; font-weight: 600; cursor: pointer; }
 
 /* List rows (History and Settings) */
 .list { background: var(--card); border-radius: 16px; overflow: hidden; }

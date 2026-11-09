@@ -55,7 +55,7 @@
       const done = s.state === "taken" || s.state === "takenLate";
       const attrs = 'data-rid="' + esc(o.reminderId) + '" data-due="' + o.dueAt + '"';
       const action = done
-        ? '<button type="button" class="link danger" data-action="undo" ' + attrs + '>Undo</button>'
+        ? '<button type="button" class="undo" data-action="undo" ' + attrs + '>\u21B6 Tapped by mistake? Undo</button>'
         : '<button type="button" class="btn-big" data-action="take" ' + attrs + (L.canMarkTaken(log, o, t) ? "" : " disabled") + ">" +
           (s.state === "missed" ? "I took it late" : "I took it") + "</button>";
       return '<article class="card"><div class="row"><h2>' + esc(o.title) + '</h2><span class="time">' + timeText(o.dueAt) + "</span></div>" +
