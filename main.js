@@ -1123,13 +1123,16 @@
       if (skyOn) return;
       skyOn = true;
       const run = ++skyRun;
-      if (inSpace) endSpace();
-      if (scrollY > 0) { scrollTo({ top: 0, behavior: reduce.matches ? "auto" : "smooth" }); await wait(reduce.matches ? 0 : 450); }
+      // From the moon, the sky slides down over the space scene itself; the scene is only
+      // torn down once it is covered, so there is no flash of the map in between.
+      const fromSpace = inSpace;
+      if (!fromSpace && scrollY > 0) { scrollTo({ top: 0, behavior: reduce.matches ? "auto" : "smooth" }); await wait(reduce.matches ? 0 : 450); }
       skyEl.classList.add("on");
       await Promise.all([
         play(skyEl, [{ transform: "translateY(-100%)" }, { transform: "translateY(0)" }], PAN),
         play(map, [{ transform: "translateY(0)" }, { transform: "translateY(30%)" }], PAN)
       ]);
+      if (fromSpace && inSpace) endSpace();
       if (run !== skyRun) return;         // left again before it finished
       skyEl.classList.add("lit");
       skyEl.querySelector(".dstar.link[href]")?.focus({ preventScroll: true });
