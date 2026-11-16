@@ -714,3 +714,24 @@ a.dstar:focus-visible .dlabel { outline: 3px solid #fff; outline-offset: 2px; }
   background: var(--accent-soft); border: 2px solid var(--border); border-radius: 4px; }
 .email-card .em-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .email-card .btn { cursor: pointer; font-family: inherit; }
+
+
+/* Week-by-week plan on a card: one button per week, a panel under the buttons */
+.weeks { display: grid; gap: 8px; }
+.wk-heading { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.wk-btns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.wk-btn { font: inherit; cursor: pointer; display: grid; gap: 2px; justify-items: center; padding: 8px 4px; border-radius: 6px;
+  border: 2px solid var(--border); background: var(--bg); color: var(--text); }
+.wk-btn:hover { border-color: var(--text); }
+.wk-btn[aria-expanded="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.wk-num { font-weight: 700; font-size: 14px; }
+.wk-state { font-size: 11px; color: var(--muted); }
+.wk-btn.done .wk-state { color: var(--done); font-weight: 700; }
+.wk-panel { border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 6px; padding: 8px 10px; background: var(--bg); display: grid; gap: 3px; }
+.wk-panel[hidden] { display: none; }
+.wk-panel.done { border-left-color: var(--done); }
+.wk-head { display: flex; gap: 10px; font-size: 12px; color: var(--muted); }
+.wk-title { font-weight: 700; font-size: 15px; color: var(--text); }
+.wk-line { font-size: 14px; color: var(--muted); }
+.wk-line b { color: var(--text); font-weight: 600; }
+@media (max-width: 420px) { .wk-btns { grid-template-columns: repeat(3, 1fr); } }

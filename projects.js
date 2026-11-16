@@ -86,12 +86,19 @@ const COURSES = [
         ]
       },
       {
-        title: "The Moonshot",
-        status: "upcoming",
+        title: "The Moonshot: Eye Tracker",
+        status: "in-progress",
         biome: "space", // launch island: clicking it flies a rocket to the moon
-        week: null,
-        summary: "Course plan: a five-week project, solo or with a team, bigger than anything I have built before and ideally deployed where real users can reach it. Due Sun Dec 13.",
-        tags: [], repo: "", demo: ""
+        week: 6,
+        summary: "Update, Nov 15: This is my plan, and nothing is built yet. This week was for choosing the project. I used Claude to brainstorm ideas well outside what I had built before, including a balloon that films the edge of space, a robot that plays air hockey, a Wi-Fi radar that senses people through walls, and a radio that catches meteors. I narrowed it to ones that needed hardware and cost less, and chose an eye tracker because I already own the webcam for it and wanted something more ambitious than a plain cursor. It works out where I am looking and moves the cursor, so someone who cannot easily use a mouse could still use a computer. I will build it in three levels. Level 1 moves the cursor and clicks when I hold my gaze on something. Level 2 is a full hands-free computer: an on-screen keyboard that predicts words, scrolling and dragging by gaze, and a gaze model I train myself on my own data. Level 3 is a wearable with a second small camera that knows what I am looking at, so looking at a lamp could turn it on. That last level is the stretch, and it may not land. Everything will run on my own computer, so no video leaves it. I will measure how accurate it is and how fast I can type with it, and test it with real people. I have not decided yet whether to work alone or with a partner. Due Sun Dec 13.",
+        weekly: [
+          { week: 1, date: "Nov 15 (course week 6)", title: "Choose the project", plan: "Brainstorm ideas and pick one. No building yet.", result: "Picked the eye tracker: a webcam that moves the cursor by where I look, built in three levels. Nothing is built yet." },
+          { week: 2, date: "Nov 22 (course week 7)", title: "Set up and Level 1", plan: "Name the project, make the repo and log, prove the camera and tools work, and get a gaze dot, calibration and a clickable cursor.", result: "" },
+          { week: 3, date: "Nov 29 (course week 8)", title: "Level 2 begins", plan: "Make Level 1 solid, add eye typing with word prediction, and train my own gaze model.", result: "" },
+          { week: 4, date: "Dec 6 (course week 9)", title: "Test and record", plan: "Test with real people, measure accuracy and typing speed, record a demo video, and try Level 3 only if Level 2 is solid.", result: "" },
+          { week: 5, date: "Dec 7 show, Dec 13 due", title: "Show and submit", plan: "Show it live in class on Dec 7. Finish the card, the log and my reflection by Dec 13.", result: "" }
+        ],
+        tags: ["Python", "Computer Vision", "PyTorch", "Accessibility"], repo: "", demo: ""
       }
     ]
   }

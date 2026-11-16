@@ -54,6 +54,39 @@
       <div class="ss-dots">${imgs.map((_, n) => `<button type="button" class="ss-dot" aria-label="Show image ${n + 1}" aria-current="${n ? "false" : "true"}"></button>`).join("")}</div>` : ""}
     </div>` : "";
 
+  // Optional week-by-week plan on a card: [{ week, date, title, plan, result }].
+  // Shown as one button per week. A week is "Done" once its `result` has text; until then it says "Not done".
+  const weekly = (w) => (w && w.length) ? `
+    <div class="weeks" data-weeks>
+      <div class="wk-heading mono">Week by week</div>
+      <div class="wk-btns">${w.map((x, n) => `
+        <button type="button" class="wk-btn ${x.result ? "done" : "notdone"}" data-wk="${n}" aria-expanded="false">
+          <span class="wk-num">Week ${esc(x.week)}</span>
+          <span class="wk-state">${x.result ? "Done" : "Not done"}</span>
+        </button>`).join("")}</div>
+      ${w.map((x, n) => `
+      <div class="wk-panel ${x.result ? "done" : ""}" data-wk-panel="${n}" hidden>
+        <div class="wk-head mono"><span>Week ${esc(x.week)}</span><span>${esc(x.date || "")}</span></div>
+        <div class="wk-title">${esc(x.title)}</div>
+        <div class="wk-line"><b>Plan:</b> ${esc(x.plan)}</div>
+        <div class="wk-line"><b>What happened:</b> ${x.result ? esc(x.result) : "Not done yet."}</div>
+      </div>`).join("")}
+    </div>` : "";
+
+  // Week buttons: click one to show its panel, click it again to hide it.
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest && e.target.closest(".wk-btn");
+    if (!b) return;
+    const box = b.closest("[data-weeks]");
+    const open = b.getAttribute("aria-expanded") === "true";
+    box.querySelectorAll(".wk-btn").forEach((x) => x.setAttribute("aria-expanded", "false"));
+    box.querySelectorAll(".wk-panel").forEach((x) => { x.hidden = true; });
+    if (!open) {
+      b.setAttribute("aria-expanded", "true");
+      box.querySelector(`[data-wk-panel="${b.dataset.wk}"]`).hidden = false;
+    }
+  });
+
   function artifactCard(a, i) {
     const status = STATUS[a.status] ? a.status : "upcoming";
     const upcoming = status === "upcoming";
@@ -65,6 +98,7 @@
         </div>
         ${upcoming ? "" : slideshow(a.images, i)}
         <h3>${esc(a.title || "Future artifact")}</h3>
+        ${weekly(a.weekly)}
         <p>${esc(a.summary || "Project overview and deliverables will be posted when this artifact is released.")}</p>
         ${tags(a.tags)}
         ${upcoming ? "" : links(a)}
